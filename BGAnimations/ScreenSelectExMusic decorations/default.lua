@@ -21,10 +21,10 @@ local t = LoadFallbackB();
 local t2 = Def.ActorFrame{
 	OnCommand=function(self)
 		self:sleep(0.5);
-		self:decelerate(_TT.S_IN);
+		self:decelerate(GetwaieiScreenInSec());
 	end;
 	OffCommand=function(self)
-		self:accelerate(_TT.S_OUT);
+		self:accelerate(GetwaieiScreenOutSec());
 	end;
 	StartMessageCommand=cmd(playcommand,"Off");
 	LoadActor(THEME:GetPathG("ScreenWithMenuElements","header"))..{
@@ -37,7 +37,7 @@ local t2 = Def.ActorFrame{
 		InitCommand=function(self)
 			self:visible(TC_GetwaieiMode()~=2);
 			self:x(THEME:GetMetric("ScreenSelectMusic","MusicWheelX"));
-			self:y(THEME:GetMetric("ScreenSelectMusic","MusicWheelY")-48);
+			self:y(THEME:GetMetric("ScreenSelectMusic","MusicWheelY")-88);
 		end;
 		OnCommand=function(self)
 			self:finishtweening();
@@ -68,38 +68,10 @@ local t2 = Def.ActorFrame{
 	LoadActor("waiei"..TC_GetwaieiMode().."_wheel")..{
 		InitCommand=function(self)
 			self:x(THEME:GetMetric("ScreenSelectMusic","MusicWheelX"));
-			self:y(THEME:GetMetric("ScreenSelectMusic","MusicWheelY"));
-			--[[
-			self:zoomx(TC_GetMetric("Wheel","ZoomX"));
-			self:zoomy(TC_GetMetric("Wheel","ZoomY"));
-			self:zoomz(TC_GetMetric("Wheel","ZoomZ"));
-			if TC_GetwaieiMode()==2 then
-				if SCREEN_WIDTH/SCREEN_HEIGHT>1.65 then
-					self:zoom(self:GetZoom()*1);
-				elseif SCREEN_WIDTH/SCREEN_HEIGHT>1.5 then
-					self:zoom(self:GetZoom()*0.92);
-				else
-					self:zoom(self:GetZoom()*0.85);
-				end;
-			end;
-			--]]
+			self:y(THEME:GetMetric("ScreenSelectMusic","MusicWheelY")-40);
 		end;
-		--OnCommand=TC_GetCommand("Wheel","OnCommand");
 		OnCommand=function(self)
 			self:SetDrawByZPosition(true);
-			local zoomval=1.0;
-			if TC_GetwaieiMode()==2 then
-				if SCREEN_WIDTH/SCREEN_HEIGHT>1.65 then
-					zoomval=1;
-				elseif SCREEN_WIDTH/SCREEN_HEIGHT>1.5 then
-					zoomval=0.92;
-				else
-					zoomval=0.85;
-				end;
-			end;
-			self:zoomx(TC_GetMetric("Wheel","ZoomX")*zoomval);
-			self:zoomy(TC_GetMetric("Wheel","ZoomY")*zoomval);
-			self:zoomz(TC_GetMetric("Wheel","ZoomZ")*zoomval);
 			self:zoomz(1);
 			self:fov(90);
 			self:addy(400);
@@ -121,10 +93,12 @@ local t2 = Def.ActorFrame{
 			self:rotationx(90);
 		end;
 	};
-	LoadActor(TC_GetPath("Wheel","highlight"))..{
+	Def.ActorFrame{
+		FOV=90;
 		OnCommand=function(self)
-			self:x(THEME:GetMetric("ScreenSelectMusic","MusicWheelX"));
-			self:y(THEME:GetMetric("ScreenSelectMusic","MusicWheelY"));
+			self:x(THEME:GetMetric("ScreenSelectMusic","MusicWheelX")+TC_GetMetric("Wheel","PosX")+TC_GetMetric("Wheel","LightPosX"));
+			self:y(THEME:GetMetric("ScreenSelectMusic","MusicWheelY")+TC_GetMetric("Wheel","PosY")+TC_GetMetric("Wheel","LightPosY"));
+			self:z(TC_GetMetric("Wheel","PosZ")+TC_GetMetric("Wheel","LightPosZ"));
 			self:effectclock("bgm");
 			self:diffuseshift();
 			self:effectcolor1(color("1,1,1,0.5"));
@@ -132,14 +106,34 @@ local t2 = Def.ActorFrame{
 			self:zoomy(0);
 			self:sleep(0.3);
 			self:linear(0.2);
-			self:zoomx(TC_GetMetric("Wheel","ZoomX"));
-			self:zoomy(TC_GetMetric("Wheel","ZoomY"));
-			self:zoomz(TC_GetMetric("Wheel","ZoomZ"));
+			self:zoomx(TC_GetMetric("Wheel","ZoomX")*tonumber(TC_GetRatioPrm(TC_GetMetric("Wheel","ZoomRatio"))));
+			self:zoomy(TC_GetMetric("Wheel","ZoomY")*tonumber(TC_GetRatioPrm(TC_GetMetric("Wheel","ZoomRatio"))));
+			self:zoomz(TC_GetMetric("Wheel","ZoomZ")*tonumber(TC_GetRatioPrm(TC_GetMetric("Wheel","ZoomRatio"))));
+			self:rotationx(TC_GetMetric("Wheel","RotateX"));
+			self:rotationy(TC_GetMetric("Wheel","RotateY"));
+			self:rotationz(TC_GetMetric("Wheel","RotateZ"));
 		end;
 		OffCommand=function(self)
 			self:linear(0.1);
 			self:zoomx(0);
 		end;
+		LoadActor(TC_GetPath("Wheel","highlight"))..{
+			OnCommand=function(self)
+				self:zoomx(TC_GetMetric("Wheel","CZoomX"));
+				self:zoomy(TC_GetMetric("Wheel","CZoomY"));
+				self:zoomz(TC_GetMetric("Wheel","CZoomZ"));
+				self:rotationx(TC_GetMetric("Wheel","CRotateX"));
+				self:rotationy(TC_GetMetric("Wheel","CRotateY"));
+				self:rotationz(TC_GetMetric("Wheel","CRotateZ"));
+				if TC_GetMetric("Wheel","Flow")=='X' then
+					self:x(TC_GetMetric("Wheel","CPosX"));
+					self:y(TC_GetMetric("Wheel","CPosY"));
+				else
+					self:x(TC_GetMetric("Wheel","CPosX"));
+					self:y(TC_GetMetric("Wheel","CPosY"));
+				end;
+			end;
+		};
 	};
 	StandardDecorationFromFileOptional("StageDisplay","StageDisplay");
 	StandardDecorationFromFileOptional("BPMDisplay","BPMDisplay")..{
@@ -243,21 +237,4 @@ t2[#t2+1] = Def.ActorFrame{
 };
 
 t[#t+1] = t2;
-t[#t+1]= LoadActor(THEME:GetPathG('_Avatar','graphics/show'),40,false,0.75)..{
-	InitCommand=function(self)
-		if TC_GetwaieiMode()==2 then
-			if SCREEN_WIDTH/SCREEN_HEIGHT<1.6 then
-				self:y(160);
-			else
-				self:y(90);
-			end;
-		else
-			if SCREEN_WIDTH/SCREEN_HEIGHT<1.6 then
-				self:y(80);
-			else
-				self:y(90);
-			end;
-		end;
-	end;
-};
 return t;

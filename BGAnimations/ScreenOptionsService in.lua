@@ -1,0 +1,2 @@
+waieiSavePref();
+return Def.ActorFrame{};

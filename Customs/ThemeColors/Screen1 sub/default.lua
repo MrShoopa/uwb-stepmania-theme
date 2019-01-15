@@ -26,6 +26,9 @@ tc_list[3]={
 };
 local tc_num=3;
 local tc_sel=1;
+local tc_col=1;
+local tcc_list={};
+local tc_mode=0;	-- [ja] 0：テーマ選択、1：カラー選択
 local dirlist=FILEMAN:GetDirListing(tc_dir,true,false);
 for dl=1,#dirlist do
 	local ldirlist=string.lower(dirlist[dl]);
@@ -99,11 +102,21 @@ t[#t+1]=Def.ActorFrame{
 				MESSAGEMAN:Broadcast("Start");
 			elseif C_GetKey(PLAYER_1,"Left") or C_GetKey(PLAYER_1,"Up")
 				or C_GetKey(PLAYER_2,"Left") or C_GetKey(PLAYER_2,"Up") then
-				tc_sel=tc_sel-1;
-				if tc_sel<1 then
-					tc_sel=tc_num;
+				if tc_mode == 0 then
+					tc_sel=tc_sel-1;
+					if tc_sel<1 then
+						tc_sel=tc_num;
+					end;
+				else
+					tc_col=tc_col-1;
+					if tc_col<1 then
+						tc_col=#tcc_list;
+					end;
 				end;
 				local params={
+					tcc=tc_mode;
+					tc_sub = tcc_list;
+					tc_col = tc_col;
 					sel=tc_sel;
 					max=tc_num;
 					id=tc_list[tc_sel].id;
@@ -116,11 +129,21 @@ t[#t+1]=Def.ActorFrame{
 				self:queuecommand("SoundPlay");
 			elseif C_GetKey(PLAYER_1,"Right") or C_GetKey(PLAYER_1,"Down")
 				or C_GetKey(PLAYER_2,"Right") or C_GetKey(PLAYER_2,"Down") then
-				tc_sel=tc_sel+1;
-				if tc_sel>tc_num then
-					tc_sel=1;
+				if tc_mode == 0 then
+					tc_sel=tc_sel+1;
+					if tc_sel>tc_num then
+						tc_sel=1;
+					end;
+				else
+					tc_col=tc_col+1;
+					if tc_col>#tcc_list then
+						tc_col=1;
+					end;
 				end;
 				local params={
+					tcc=tc_mode;
+					tc_sub = tcc_list;
+					tc_col = tc_col;
 					sel=tc_sel;
 					max=tc_num;
 					id=tc_list[tc_sel].id;
@@ -133,15 +156,40 @@ t[#t+1]=Def.ActorFrame{
 				self:queuecommand("SoundPlay");
 			elseif C_GetKey(PLAYER_1,"Back") or C_GetKey(PLAYER_2,"Back") then
 				sys_lock=true;
-				C_Cancel('ScreenTitleMenu');
+				if tc_mode == 0 then
+					C_Cancel('ScreenTitleMenu');
+				else
+					tc_mode = 0;
+					MESSAGEMAN:Broadcast("PrevColor");
+				end;
 			end;
 		end;
 	end;
 	--　[ja] ScreenSelectMasterなのでバック処理は不要
 	StartMessageCommand=function(self)
 		-- [ja] テーマ情報の設定 
-		-- [ja] サブテーマカラーは後で実装
-		TC_SetThemeStats(tc_list[tc_sel].mode,tc_list[tc_sel].name,'main',tc_list[tc_sel].color);
+		local sub_color = (tc_list[tc_sel].mode==2) and tcc_list[tc_col] or 'main';
+		if tc_mode==0 and tc_list[tc_sel].mode==2 then
+			local col_dirlist=FILEMAN:GetDirListing(tc_dir..""..tc_list[tc_sel].name..'/',true,false);
+			local v='';
+			tcc_list={'Main'}
+			for dl=1,#col_dirlist do
+				local lcol_dirlist=string.lower(col_dirlist[dl]);
+				if lcol_dirlist~="main" and lcol_dirlist~="fonts" and lcol_dirlist~="sounds" then
+					tcc_list[#tcc_list+1]=col_dirlist[dl];
+					v=v..col_dirlist[dl]..'\n';
+				end;
+			end;
+			tc_mode=1;
+			tc_col=1;
+			MESSAGEMAN:Broadcast("SelColor",{cols=tcc_list});
+		else
+			-- [ja] サブテーマカラーは後で実装
+			TC_SetThemeStats(tc_list[tc_sel].mode,tc_list[tc_sel].name,sub_color,tc_list[tc_sel].color);
+			MESSAGEMAN:Broadcast("StartBlackout");
+		end;
+	end;
+	StartBlackoutMessageCommand=function(self)
 		self:sleep(0.4);
 		self:queuecommand("NextScreen");
 	end;
@@ -151,6 +199,13 @@ t[#t+1]=Def.ActorFrame{
 		end;
 		SCREENMAN:SetNewScreen("ScreenChangedThemeColors");
 	end;
+	-- [ja] サブカラー選択へ
+	SelColorMessageCommand=function(self,params)
+		self:sleep(0.3);
+		self:queuecommand("UnLockKey");
+	end;
+	-- [ja] サブカラー選択でバック
+	PrevColorMessageCommand=cmd(playcommand,'SelColor');
 	-- [ja] 決定 
 	LoadActor(THEME:GetPathS("Common","start")) .. {
 		StartMessageCommand=function(self)

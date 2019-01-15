@@ -37,9 +37,9 @@ end;
 
 function SelectMusicCode()
 	if _GAME()~="pump" then
-		return "ViewScore,ExFolder,ViewScore2=ViewScore,ExFolder2=ExFolder,CloseFolder,CloseFolder2=CloseFolder,Start,SelCWheel";
+		return "ViewScore,ExFolder,ViewScore2=ViewScore,ExFolder2=ExFolder,CloseFolder,CloseFolder2=CloseFolder,Left,Left2=Left,Right,Right2=Right,Start,SelCWheel";
 	else
-		return "ViewScore2=ViewScore,ExFolder2=ExFolder,ViewScore3=ViewScore,ExFolder3=ExFolder,CloseFolder,CloseFolder3=CloseFolder,Start,Center=Start,SelCWheel,SelCWheel2=SelCWheel";
+		return "ViewScore2=ViewScore,ExFolder2=ExFolder,ViewScore3=ViewScore,ExFolder3=ExFolder,CloseFolder,CloseFolder3=CloseFolder,Left,Left3=Left,Right,Right3=Right,Start,Center=Start,SelCWheel,SelCWheel2=SelCWheel";
 	end;
 end;
 
@@ -77,9 +77,9 @@ end;
 
 function EvaluationNormalCode()
 	if _GAME()~="pump" then
-		return "SwitchSongTitle,SwitchSongTitle2=SwitchSongTitle,SwitchSongTitle3=SwitchSongTitle,SwitchSongTitle4=SwitchSongTitle,ShowPopup,ShowPopup2=ShowPopup";
+		return "SwitchSongTitle,SwitchSongTitle2=SwitchSongTitle,SwitchSongTitle3=SwitchSongTitle,SwitchSongTitle4=SwitchSongTitle,ShowPopup,ShowPopup2=ShowPopup,Tweet,Tweet2=Tweet";
 	else
-		return "SwitchSongTitle3=SwitchSongTitle,SwitchSongTitle4=SwitchSongTitle,SwitchSongTitle5=SwitchSongTitle,SwitchSongTitle6=SwitchSongTitle,ShowPopup,ShowPopup3=ShowPopup";
+		return "SwitchSongTitle3=SwitchSongTitle,SwitchSongTitle4=SwitchSongTitle,SwitchSongTitle5=SwitchSongTitle,SwitchSongTitle6=SwitchSongTitle,ShowPopup,ShowPopup3=ShowPopup,Tweet,Tweet2=Tweet";
 	end;
 end;
 

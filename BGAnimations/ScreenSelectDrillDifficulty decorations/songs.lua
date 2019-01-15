@@ -4,10 +4,10 @@ local t=Def.ActorFrame{FOV=60;};
 -- SongList 
 local sg;
 local df;
-local sm=1;
 t[#t+1]=Def.ActorFrame{
 	SetMessageCommand=function(self)
-		sm=#GetLVInfo(GetSelDrillLevel().."-Song");
+		local sm=#GetLVInfo(GetSelDrillLevel().."-Song") or 1;
+		MESSAGEMAN:Broadcast("ChangedLevel",{SongCount=sm});
 	end;
 };
 for i=1,5 do
@@ -15,17 +15,17 @@ t[#t+1]=Def.ActorFrame{
 	-- [ja] 1曲当たりの縦スペースは64px 
 	OnCommand=function(self)
 		self:addy(-SCREEN_HEIGHT);
-		self:decelerate(_TT.S_IN);
+		self:decelerate(GetwaieiScreenInSec());
 		self:addy(SCREEN_HEIGHT);
 	end;
 	OffCommand=function(self)
-		self:accelerate(_TT.S_OUT);
+		self:accelerate(GetwaieiScreenOutSec());
 		self:addy(SCREEN_HEIGHT);
 	end;
-	SetMessageCommand=function(self)
-		if sm<5 then
+	ChangedLevelMessageCommand=function(self,params)
+		if params.SongCount<5 then
 			self:y(-230+i*80);
-			self:addy((4-sm)*40+32);
+			self:addy((4-params.SongCount)*40+32);
 		else
 			self:y(-210+i*70);
 		end;
@@ -34,8 +34,8 @@ t[#t+1]=Def.ActorFrame{
 		InitCommand=function(self)
 			self:zoomto(200,64);
 		end;
-		SetMessageCommand=function(self)
-			if i<=sm then
+	ChangedLevelMessageCommand=function(self,params)
+			if i<=params.SongCount then
 				_,sg,df=GetDrillSong(GetLVInfo(GetSelDrillLevel().."-Song")[i]);
 			end;
 			if sg and df then
@@ -44,7 +44,7 @@ t[#t+1]=Def.ActorFrame{
 				self:diffuse(Color("Black"));
 			end;
 			self:diffusealpha(0.5);
-			if i<=sm then
+			if i<=params.SongCount then
 				self:visible(true);
 			else
 				self:visible(false);
@@ -57,11 +57,11 @@ t[#t+1]=Def.ActorFrame{
 			self:diffuse(Color("White"));
 			self:strokecolor(BoostColor(waieiColor("Dark"),0.25));
 		end;
-		SetMessageCommand=function(self)
+		ChangedLevelMessageCommand=function(self,params)
 			self:x(-95);
 			self:y(-24);
 			self:zoom(0.6);
-			if i<=sm then
+			if i<=params.SongCount then
 				_,sg,_=GetDrillSong(GetLVInfo(GetSelDrillLevel().."-Song")[i]);
 				if sg then
 					self:settext("Stage"..i);
@@ -77,8 +77,8 @@ t[#t+1]=Def.ActorFrame{
 		InitCommand=function(self)
 			self:horizalign(left);
 		end;
-		SetMessageCommand=function(self)
-			if i<=sm then
+		ChangedLevelMessageCommand=function(self,params)
+			if i<=params.SongCount then
 				_,sg,_=GetDrillSong(GetLVInfo(GetSelDrillLevel().."-Song")[i]);
 				if sg then
 					if sg:HasBanner() then
@@ -102,13 +102,13 @@ t[#t+1]=Def.ActorFrame{
 			self:horizalign(left);
 			self:maxwidth(190/0.75);
 		end;
-		SetMessageCommand=function(self)
+		ChangedLevelMessageCommand=function(self,params)
 			self:x(-95);
 			self:y(20);
 			self:zoom(0.75);
 			self:diffuse(BoostColor(waieiColor("Text"),1.5));
 			self:strokecolor(BoostColor(waieiColor("Text"),0.5));
-			if i<=sm then
+			if i<=params.SongCount then
 				_,sg,_=GetDrillSong(GetLVInfo(GetSelDrillLevel().."-Song")[i]);
 				if sg then
 					self:settext(sg:GetDisplayFullTitle());
@@ -127,11 +127,11 @@ t[#t+1]=Def.ActorFrame{
 			self:horizalign(right);
 			self:maxwidth(190/0.75);
 		end;
-		SetMessageCommand=function(self)
+		ChangedLevelMessageCommand=function(self,params)
 			self:x(95);
 			self:y(-20);
 			self:zoom(0.6);
-			if i<=sm then
+			if i<=params.SongCount then
 				_,sg,df=GetDrillSong(GetLVInfo(GetSelDrillLevel().."-Song")[i]);
 				if df then
 					self:diffuse(_DifficultyCOLOR(df));
@@ -154,10 +154,10 @@ t[#t+1]=Def.ActorFrame{
 			self:horizalign(right);
 			self:maxwidth(190);
 		end;
-		SetMessageCommand=function(self)
+		ChangedLevelMessageCommand=function(self,params)
 			self:x(95);
 			self:y(-2);
-			if i<=sm then
+			if i<=params.SongCount then
 				_,sg,df=GetDrillSong(GetLVInfo(GetSelDrillLevel().."-Song")[i]);
 				if df then
 					self:diffuse(_DifficultyCOLOR(df));

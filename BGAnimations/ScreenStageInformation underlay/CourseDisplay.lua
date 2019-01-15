@@ -1,5 +1,3 @@
-local tcol,haishin,basezoom=...;
-
 if not GAMESTATE:IsCourseMode() then return Def.ActorFrame{} end; -- short circuit
 local course = GAMESTATE:GetCurrentCourse()
 

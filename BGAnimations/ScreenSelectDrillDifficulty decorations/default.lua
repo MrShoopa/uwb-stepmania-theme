@@ -179,7 +179,7 @@ if CntLVInfo()>0 then
 end;
 
 t2.OffMessageCommand=function(self)
-	self:accelerate(_TT.S_OUT);
+	self:accelerate(GetwaieiScreenOutSec());
 	self:x(-SCREEN_CENTER_X);
 	self:y(SCREEN_CENTER_Y);
 	self:zoomx(2);

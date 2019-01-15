@@ -140,9 +140,9 @@ local function InitGroups()
 	init=true;
 end;
 function InitSongs()
-	if not init then
+	--if not init then
 		InitGroups();
-	end;
+	--end;
 end;
 function ReloadSongFlag()
 	init=false;

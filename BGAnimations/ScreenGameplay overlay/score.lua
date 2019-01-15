@@ -35,8 +35,8 @@ return Def.ActorFrame{
 	Def.RollingNumbers{
 		File=THEME:GetPathF("ScoreDisplayNormal","Text");
 		InitCommand=function(self)
-			if scoremode=="SuperNOVA2" then
-				self:Load("RollingNumbersScoreSN2");
+			if scoremode=="DDR A" or scoremode=="SuperNOVA2" then
+				self:Load("RollingNumbersScoreDDRA");
 			elseif scoremode=="DancePoints" then
 				if percentscore then
 					self:Load("RollingNumbersScoreDP_Point");

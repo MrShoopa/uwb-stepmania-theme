@@ -15,32 +15,21 @@ for pn in ivalues(PlayerNumber) do
 			end;
 		end;
 		filter[p]=GetUserPref_Theme("UserScreenFilter"..nm);
-		if not filter[p] then filter[p]='Off' end;
+		if not filter[p] or filter[p]=="" then filter[p]='Off' end;
 	end;
 end;
 
+-- [ja] 曲情報は曲が変更されたときに1回更新する
 local song;
 local start;
 local last;
-local function SongChk()
-	if (not song) or (song ~= _SONG()) then
-		song = _SONG();
-		if song then
+t[#t+1]=Def.ActorFrame{
+	ChangedGameplaySongMessageCommand=function(self,params)
+		if params.Song then
+			song=params.Song
 			start = song:GetFirstBeat();
 			last = song:GetLastBeat();
 		end;
-	end;
-end;
-t[#t+1]=Def.ActorFrame{
-	OnCommand=function(self)
-		SongChk();
-		self:queuecommand("Loop");
-	end;
-	LoopCommand=function(self)
-		self:finishtweening();
-		SongChk();
-		self:sleep(0.1);
-		self:queuecommand("Loop");
 	end;
 };
 
@@ -123,26 +112,21 @@ for pn in ivalues(PlayerNumber) do
 				else
 					self:diffusealpha(1);
 				end;
-				self:visible(0);
-				self:queuecommand("Loop");
+				self:visible(false);
 			end;
-			-- [ja] Update関数は重いので0.1秒間隔で監視 
-			LoopCommand=function(self)
-				self:finishtweening();
-				if song then
-					local now = GAMESTATE:GetSongBeat();
-					if (now >= start-8.0) and (now <= last) then
+			GameplayTimerMessageCommand=function(self,params)
+				if params.Song then
+					local beat = params.Beat;
+					if (beat >= start-8.0) and (beat <= last) then
 						if GAMESTATE:IsPlayerEnabled(pn) then
-							self:visible(1);
+							self:visible(true);
 						else
-							self:visible(0);
+							self:visible(false);
 						end;
 					else
 						self:visible(0);
 					end;
 				end;
-				self:sleep(0.1);
-				self:queuecommand("Loop");
 			end;
 		};
 	};

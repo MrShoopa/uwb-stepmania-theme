@@ -16,7 +16,7 @@ function TC_Default()
 	return 'BlueIce';
 end;
 function TC_GetLoadTheme()
-	return tc["Load"];
+	return tc and tc["Load"] or false;
 end;
 function TC_ReloadTheme()
 	TC_SetwaieiMode(tc["Mode"]);
@@ -24,23 +24,25 @@ function TC_ReloadTheme()
 	TC_Init(tc["Name"],tc["SubColor"]);
 end;
 local TC_retScreen="";
+        local a="";
 function TC_LoadChk(screenname)
-	-- [ja] waiei2テーマ適応(Ctrl+F2を押すなどして内部変数が初期化されたも時用) 
+	-- [ja] waiei2テーマ適応(Ctrl+F2を押すなどして内部変数が初期化された時用) 
 	if not TC_GetLoadTheme() then
+        -- ロード処理
 		if screenname then
 			TC_retScreen=screenname;
 		end;
 		local t_tc=GetUserPref_Theme("ThemeColor");
 		if not t_tc then
-			t_tc="2|"..TC_Default().."|main|2";
+			t_tc="2|"..TC_Default().."|Main|2";
 		end;
 		s_tc=split("|",t_tc);
 		if(#s_tc==3) then
-			TC_SetThemeStats(tonumber(s_tc[1]),s_tc[2],'main',tonumber(s_tc[3])); 
+			TC_SetThemeStats(tonumber(s_tc[1]),s_tc[2],'Main',tonumber(s_tc[3])); 
 		elseif(#s_tc==4) then
 			TC_SetThemeStats(tonumber(s_tc[1]),s_tc[2],s_tc[3],tonumber(s_tc[4])); 
 		else
-			TC_SetThemeStats(2,TC_Default(),'main',2); 
+			TC_SetThemeStats(2,TC_Default(),'Main',2); 
 		end;
 		SCREENMAN:SetNewScreen("ScreenChangedThemeColors");
 	end;
@@ -77,7 +79,7 @@ end;
 
 local TC_SubColor="";
 function TC_GetSubColor()
-	return (TC_GetwaieiMode()==2) and TC_SubColor or 'main';
+	return (TC_GetwaieiMode()==2) and TC_SubColor or 'Main';
 end;
 
 function TC_SetPlayerColorMode(mode)
@@ -197,22 +199,33 @@ local function TC_Loadwaiei2Color(pFolder,pFile,themedir)
 	
 	local block="";
 	local prm="";
+	--[[
+		[ja] 全体
+	--:]]
 	local metricFile=themedir.."/ThemeColor.ini";
 	if FILEMAN:DoesFileExist(metricFile) then
-		block=TC_GetTextBlock(metricFile,"main");	------------------------- [main]
-		prm=TC_GetBlockPrm(block,"combonumberx");
-		if prm~="" then TC_Metric["ComboNumber-PosX"]=tonumber(prm); end;
-		prm=TC_GetBlockPrm(block,"combonumbery");
-		if prm~="" then TC_Metric["ComboNumber-PosY"]=tonumber(prm); end;
-		prm=TC_GetBlockPrm(block,"combolabelx");
-		if prm~="" then TC_Metric["ComboLabel-PosX"]=tonumber(prm); end;
-		prm=TC_GetBlockPrm(block,"combolabely");
-		if prm~="" then TC_Metric["ComboLabel-PosY"]=tonumber(prm); end;
-
 		block=TC_GetTextBlock(metricFile,"custommenu");	------------------------- [Title]
 		prm=TC_GetBlockPrm(block,"folder");
 		if prm~="" then TC_Other["CustomMenu-Folder"]='_,'..prm; end;
 	end;
+	--[[
+		[ja] ゲーム画面
+	--:]]
+	metricFile=themedir.."/Gameplay/ThemeColor.ini";
+	if FILEMAN:DoesFileExist(metricFile) then
+		block=TC_GetTextBlock(metricFile,"combo");	------------------------- [Combo]
+		prm=TC_GetBlockPrm(block,"numberx");
+		if prm~="" then TC_Metric["ComboNumber-PosX"]=tonumber(prm); end;
+		prm=TC_GetBlockPrm(block,"numbery");
+		if prm~="" then TC_Metric["ComboNumber-PosY"]=tonumber(prm); end;
+		prm=TC_GetBlockPrm(block,"labelx");
+		if prm~="" then TC_Metric["ComboLabel-PosX"]=tonumber(prm); end;
+		prm=TC_GetBlockPrm(block,"labely");
+		if prm~="" then TC_Metric["ComboLabel-PosY"]=tonumber(prm); end;
+	end;
+	--[[
+		[ja] ホイール
+	--:]]
 	metricFile=themedir.."/Wheel/ThemeColor.ini";
 	if FILEMAN:DoesFileExist(metricFile) then
 		block=TC_GetTextBlock(metricFile,"main");	------------------------- [main]
@@ -224,6 +237,12 @@ local function TC_Loadwaiei2Color(pFolder,pFile,themedir)
 		if prm~="" then TC_Metric["Wheel-PosY"]=tonumber(prm); end;
 		prm=TC_GetBlockPrm(block,"positionz");
 		if prm~="" then TC_Metric["Wheel-PosZ"]=tonumber(prm); end;
+		prm=TC_GetBlockPrm(block,"rotatex");
+		if prm~="" then TC_Metric["Wheel-RotateX"]=tonumber(prm); end;
+		prm=TC_GetBlockPrm(block,"rotatey");
+		if prm~="" then TC_Metric["Wheel-RotateY"]=tonumber(prm); end;
+		prm=TC_GetBlockPrm(block,"rotatez");
+		if prm~="" then TC_Metric["Wheel-RotateZ"]=tonumber(prm); end;
 		prm=TC_GetBlockPrm(block,"zoomx");
 		if prm~="" then TC_Metric["Wheel-ZoomX"]=tonumber(prm); end;
 		prm=TC_GetBlockPrm(block,"zoomy");
@@ -238,6 +257,28 @@ local function TC_Loadwaiei2Color(pFolder,pFile,themedir)
 		if prm~="" then TC_Metric["Wheel-SongCountCommand"]=prm; end;
 		prm=TC_GetBlockPrm_Command(block,"oncommand");
 		if prm~="" then TC_Metric["Wheel-OnCommand"]=prm; end;
+		prm=TC_GetBlockPrm_Command(block,"offcommand");
+		if prm~="" then TC_Metric["Wheel-OffCommand"]=prm; end;
+		prm=TC_GetBlockPrm_Command(block,"zoomratio");
+		if prm~="" then TC_Metric["Wheel-ZoomRatio"]=prm; end;
+		prm=TC_GetBlockPrm_Command(block,"positionxratio");
+		if prm~="" then TC_Metric["Wheel-PositionXRatio"]=prm; end;
+		prm=TC_GetBlockPrm_Command(block,"positionyratio");
+		if prm~="" then TC_Metric["Wheel-PositionYRatio"]=prm; end;
+		prm=TC_GetBlockPrm_Command(block,"positionzratio");
+		if prm~="" then TC_Metric["Wheel-PositionZRatio"]=prm; end;
+		prm=TC_GetBlockPrm_Command(block,"flow");
+		if prm~="" then TC_Metric["Wheel-Flow"]=prm; end;
+		prm=TC_GetBlockPrm_Command(block,"style");
+		if prm~="" then TC_Metric["Wheel-Style"]=tonumber(prm); end;
+
+		block=TC_GetTextBlock(metricFile,"highlight");	------------------------- [highlight]
+		prm=TC_GetBlockPrm(block,"positionx");
+		if prm~="" then TC_Metric["Wheel-LightPosX"]=tonumber(prm); end;
+		prm=TC_GetBlockPrm(block,"positiony");
+		if prm~="" then TC_Metric["Wheel-LightPosY"]=tonumber(prm); end;
+		prm=TC_GetBlockPrm(block,"positionz");
+		if prm~="" then TC_Metric["Wheel-LightPosZ"]=tonumber(prm); end;
 
 		block=TC_GetTextBlock(metricFile,"scrollbar");	------------------------- [scrollbar]
 		prm=TC_GetBlockPrm(block,"size");
@@ -246,13 +287,100 @@ local function TC_Loadwaiei2Color(pFolder,pFile,themedir)
 		if prm~="" then TC_Metric["Wheel-ScrollBarPosX"]=tonumber(prm); end;
 		prm=TC_GetBlockPrm(block,"positiony");
 		if prm~="" then TC_Metric["Wheel-ScrollBarPosY"]=tonumber(prm); end;
+
+		block=TC_GetTextBlock(metricFile,"center");	------------------------- [center]
+		prm=TC_GetBlockPrm(block,"width");
+		if prm~="" then TC_Metric["Wheel-CWidth"]=tonumber(prm); end;
+		prm=TC_GetBlockPrm(block,"height");
+		if prm~="" then TC_Metric["Wheel-CHeight"]=tonumber(prm); end;
+		prm=TC_GetBlockPrm(block,"positionx");
+		if prm~="" then TC_Metric["Wheel-CPosX"]=tonumber(prm); end;
+		prm=TC_GetBlockPrm(block,"positiony");
+		if prm~="" then TC_Metric["Wheel-CPosY"]=tonumber(prm); end;
+		prm=TC_GetBlockPrm(block,"positionz");
+		if prm~="" then TC_Metric["Wheel-CPosZ"]=tonumber(prm); end;
+		prm=TC_GetBlockPrm(block,"zoomx");
+		if prm~="" then TC_Metric["Wheel-CZoomX"]=tonumber(prm); end;
+		prm=TC_GetBlockPrm(block,"zoomy");
+		if prm~="" then TC_Metric["Wheel-CZoomY"]=tonumber(prm); end;
+		prm=TC_GetBlockPrm(block,"zoomz");
+		if prm~="" then TC_Metric["Wheel-CZoomZ"]=tonumber(prm); end;
+		prm=TC_GetBlockPrm(block,"rotatex");
+		if prm~="" then TC_Metric["Wheel-CRotateX"]=tonumber(prm); end;
+		prm=TC_GetBlockPrm(block,"rotatey");
+		if prm~="" then TC_Metric["Wheel-CRotateY"]=tonumber(prm); end;
+		prm=TC_GetBlockPrm(block,"rotatez");
+		if prm~="" then TC_Metric["Wheel-CRotateZ"]=tonumber(prm); end;
+
+		block=TC_GetTextBlock(metricFile,"side");	------------------------- [side]
+		prm=TC_GetBlockPrm(block,"positionx");
+		if prm~="" then TC_Metric["Wheel-SPosX"]=tonumber(prm); end;
+		prm=TC_GetBlockPrm(block,"positiony");
+		if prm~="" then TC_Metric["Wheel-SPosY"]=tonumber(prm); end;
+		prm=TC_GetBlockPrm(block,"positionz");
+		if prm~="" then TC_Metric["Wheel-SPosZ"]=tonumber(prm); end;
+		prm=TC_GetBlockPrm(block,"addpositionx");
+		if prm~="" then TC_Metric["Wheel-AddSPosX"]=tonumber(prm); end;
+		prm=TC_GetBlockPrm(block,"addpositiony");
+		if prm~="" then TC_Metric["Wheel-AddSPosY"]=tonumber(prm); end;
+		prm=TC_GetBlockPrm(block,"addpositionz");
+		if prm~="" then TC_Metric["Wheel-AddSPosZ"]=tonumber(prm); end;
+		prm=TC_GetBlockPrm(block,"zoomx");
+		if prm~="" then TC_Metric["Wheel-SZoomX"]=tonumber(prm); end;
+		prm=TC_GetBlockPrm(block,"zoomy");
+		if prm~="" then TC_Metric["Wheel-SZoomY"]=tonumber(prm); end;
+		prm=TC_GetBlockPrm(block,"zoomz");
+		if prm~="" then TC_Metric["Wheel-SZoomZ"]=tonumber(prm); end;
+		prm=TC_GetBlockPrm(block,"addzoomx");
+		if prm~="" then TC_Metric["Wheel-AddSZoomX"]=tonumber(prm); end;
+		prm=TC_GetBlockPrm(block,"addzoomy");
+		if prm~="" then TC_Metric["Wheel-AddSZoomY"]=tonumber(prm); end;
+		prm=TC_GetBlockPrm(block,"addzoomz");
+		if prm~="" then TC_Metric["Wheel-AddSZoomZ"]=tonumber(prm); end;
+		prm=TC_GetBlockPrm(block,"rotatex");
+		if prm~="" then TC_Metric["Wheel-SRotateX"]=tonumber(prm); end;
+		prm=TC_GetBlockPrm(block,"rotatey");
+		if prm~="" then TC_Metric["Wheel-SRotateY"]=tonumber(prm); end;
+		prm=TC_GetBlockPrm(block,"rotatez");
+		if prm~="" then TC_Metric["Wheel-SRotateZ"]=tonumber(prm); end;
+		prm=TC_GetBlockPrm(block,"addrotatex");
+		if prm~="" then TC_Metric["Wheel-AddSRotateX"]=tonumber(prm); end;
+		prm=TC_GetBlockPrm(block,"addrotatey");
+		if prm~="" then TC_Metric["Wheel-AddSRotateY"]=tonumber(prm); end;
+		prm=TC_GetBlockPrm(block,"addrotatez");
+		if prm~="" then TC_Metric["Wheel-AddSRotateZ"]=tonumber(prm); end;
 	end;
+end;
+
+-- [ja] 現在の画面縦横比からRatio別パラメータを取得する
+function TC_GetRatioPrm(prm)
+	-- [ja] prmは "A;B,C;D,E" という内容
+	local splitPrm = split(";", prm);
+	-- [ja] パラメータが1つしかない場合はその値を返す
+	if #splitPrm == 1 then return prm; end;
+	local ratio = SCREEN_WIDTH / SCREEN_HEIGHT;
+	local ret="";
+	for i=0,#splitPrm-1 do
+		if i==#splitPrm-1 then
+			ret=splitPrm[1];
+			break;
+		elseif splitPrm[#splitPrm-i]=="" then
+			-- [ja] パラメータが空の場合無視 
+		else
+			local splitPrmData = split(",", splitPrm[#splitPrm-i]);
+			if splitPrmData[1] and ratio<=tonumber(splitPrmData[1]) then
+				ret=splitPrmData[2];
+				break;
+			end;
+		end;
+	end
+	return ret;
 end;
 
 -- [ja] 必要な設定を行う 
 function TC_Init(colorname,subcolor)
 	TC_ColorName=colorname;
-	TC_SubColor=subcolor or 'main';
+	TC_SubColor=subcolor or 'Main';
 	TC_Path={};
 	TC_Color={};
 	TC_Metric={};
@@ -266,6 +394,7 @@ function TC_Init(colorname,subcolor)
 	end;
 	--]]
 	if TC_GetwaieiMode()==2 then
+	--[[ [ja] waiei2                                                                                                                                       ]]--
 		TC_Path["Base"]="/"..THEME:GetCurrentThemeDirectory()..waieiDir().."ThemeColors/";
 		local pFolder={};
 		local pFile={};
@@ -277,14 +406,14 @@ function TC_Init(colorname,subcolor)
 		pFolder[#pFolder+1]="Wheel";	pFile[#pFile+1]="SectionCollapsed";
 		pFolder[#pFolder+1]="Wheel";	pFile[#pFile+1]="SectionExpanded";
 		pFolder[#pFolder+1]="Wheel";	pFile[#pFile+1]="Mode";
-		pFolder[#pFolder+1]="ScreenWithMenuElements";	pFile[#pFile+1]="background";
+		pFolder[#pFolder+1]="Common";	pFile[#pFile+1]="background";
 		pFolder[#pFolder+1]="BannerFrame";	pFile[#pFile+1]="frame";
 		pFolder[#pFolder+1]="BannerFrame";	pFile[#pFile+1]="over";
 		pFolder[#pFolder+1]="BannerFrame";	pFile[#pFile+1]="long_marathon";
 		pFolder[#pFolder+1]="BannerFrame";	pFile[#pFile+1]="split";
 		pFolder[#pFolder+1]="GrooveRadar";	pFile[#pFile+1]="grooveradar";
 		pFolder[#pFolder+1]="GrooveRadar";	pFile[#pFile+1]="autogen";
-		pFolder[#pFolder+1]="ScreenGameplay";	pFile[#pFile+1]="ScoreFrame";
+		pFolder[#pFolder+1]="Gameplay";	    pFile[#pFile+1]="ScoreFrame";
 		pFolder[#pFolder+1]="Judgment";		pFile[#pFile+1]="DDR";
 		pFolder[#pFolder+1]="Judgment";		pFile[#pFile+1]="SuperNOVA";
 		pFolder[#pFolder+1]="Judgment";		pFile[#pFile+1]="StepMania";
@@ -316,6 +445,7 @@ function TC_Init(colorname,subcolor)
 			end;
 		end;
 	else
+	--[[ [ja] waiei1                                                                                                                                       ]]--
 		TC_Path["Base"]="/"..THEME:GetCurrentThemeDirectory()..waieiDir().."ThemeColors/";
 		local pFolder={};
 		local pFile={};
@@ -372,9 +502,25 @@ function TC_Init(colorname,subcolor)
 		TC_Metric["Wheel-SongCountX"]=45;
 		TC_Metric["Wheel-SongCountY"]=-75;
 		TC_Metric["Wheel-SongCountCommand"]='horizalign,right;zoom,0.75;strokecolor,0,0,0,0.1;diffuse,BoostColor(Color("Blue"),1.5);';
+		TC_Metric["Wheel-LightPosX"]=0;
+		TC_Metric["Wheel-LightPosY"]=0;
+		TC_Metric["Wheel-LightPosZ"]=0;
+		TC_Metric["Wheel-RotateX"]=0;
+		TC_Metric["Wheel-RotateY"]=0;
+		TC_Metric["Wheel-RotateZ"]=0;
+		TC_Metric["Wheel-ZoomRatio"]='1';
 		TC_Metric["Wait-StageInformation"]=0.0;
 		TC_Metric["Wait-GameplayIn"]=0.5;
 		TC_Metric["Wait-GameplayOut"]=3.5;
+		TC_Metric["Wheel-CZoomX"]=1.0;
+		TC_Metric["Wheel-CZoomY"]=1.0;
+		TC_Metric["Wheel-CZoomZ"]=1.0;
+		TC_Metric["Wheel-CRotateX"]=0;
+		TC_Metric["Wheel-CRotateY"]=0;
+		TC_Metric["Wheel-CRotateZ"]=0;
+		TC_Metric["Wheel-Flow"]='X';
+		TC_Metric["Wheel-CPosX"]=0;
+		TC_Metric["Wheel-CPosY"]=0;
 		
 		TC_Other['CustomMenu-Folder']='_,ThemeColors,Avatar';
 		
@@ -388,7 +534,7 @@ function TC_Init(colorname,subcolor)
 		for i=1,#for_name do
 			TC_Path["SortJacket "..for_name[i]]  =GetFileExist(TC_Path["Color"].."waiei/Wheel/Sort Jackets/sort "..string.lower(for_name[i]));
 		end;
-		TC_Path["ScreenWithMenuElements background"]=TC_Path["Color"].."BGAnimations/ScreenWithMenuElements background/"..TC_Path["Dir"].."bg";
+		TC_Path["Common background"]                =TC_Path["Color"].."BGAnimations/ScreenWithMenuElements background/"..TC_Path["Dir"].."bg";
 		TC_Path["ScreenWithMenuElements result"]    =TC_Path["Color"].."BGAnimations/ScreenWithMenuElements background/"..TC_Path["Dir"].."_bg top";
 		TC_Path["ScreenSelectEXMusic background"]   =TC_Path["Color"].."BGAnimations/EXFolder background/"..TC_Path["Dir"].."bg";
 		TC_Path["ScreenGameplay Frame1-Top"]        =TC_Path["Color"].."Graphics/_LifeMeterBar/"..TC_Path["Dir"].."LifeMeterBar under1";
@@ -422,7 +568,7 @@ function TC_Init(colorname,subcolor)
 			local _tmpPath="";
 			_tmpPath=TC_Path["Color"].."BGAnimations/ScreenWithMenuElements background/"..TC_Path["Dir"].."bg";
 			if FileExist(_tmpPath) then
-				TC_Path["ScreenWithMenuElements background"]=_tmpPath;
+				TC_Path["Common background"]=_tmpPath;
 			end;
 			_tmpPath=TC_Path["Color"].."BGAnimations/ScreenWithMenuElements background/"..TC_Path["Dir"].."_bg top";
 			if FileExist(_tmpPath) then
@@ -521,13 +667,12 @@ function TC_Wheel_SongCountCommand(self)
 	loadstring("return cmd("..TC_Metric["Wheel-SongCountCommand"]..")")()(self);
 end;
 
-function TC_ScoreCommand(self)
+function TC_ScoreCommand(self,mode)
 	if TC_GetwaieiMode()==1 then
 		self:shadowlength(1);
 		self:strokecolor(Color("Outline"));
 		self:addy(4);
 		self:zoom(0.8);
-	else
 	end;
 	return self;
 end;

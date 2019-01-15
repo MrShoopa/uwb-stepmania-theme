@@ -3,9 +3,9 @@ themeInfo = {
 	ProductCode = "waiei-2000",
 	Name = "waiei",
 	Version = 2.000,
-	Date = "20151220",
+	Date = "20171010",
 	Revision = 2000,
-	Dev = "b",
+	Dev = "",
 }
 
 function GetThemeVersionInformation(prm)

@@ -7,11 +7,11 @@ t2[#t2+1]=Def.ActorFrame{
 t2.OnCommand=function(self)
 	self:queuecommand("Set");
 	self:addy(-SCREEN_HEIGHT);
-	self:decelerate(_TT.S_IN);
+	self:decelerate(GetwaieiScreenInSec());
 	self:addy(SCREEN_HEIGHT);
 end;
 t2.OffMessageCommand=function(self)
-	self:accelerate(_TT.S_OUT);
+	self:accelerate(GetwaieiScreenOutSec());
 	self:x(-SCREEN_CENTER_X);
 	self:y(SCREEN_CENTER_Y);
 	self:zoomx(2);

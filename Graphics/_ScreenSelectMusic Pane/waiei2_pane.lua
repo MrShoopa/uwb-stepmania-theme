@@ -1,5 +1,6 @@
 local iPN,difcolor,difname,meter_type = ...;
 assert(iPN,"[Graphics/PaneDisplay text.lua] No PlayerNumber Provided.");
+local scoremode=GetUserPref_Theme("UserCustomScore");
 
 local t = Def.ActorFrame {};
 local function GetRadarData( pnPlayer, rcRadarCategory )
@@ -287,7 +288,7 @@ t[#t+1] = Def.ActorFrame {
 			self:y(-30);
 			self:horizalign((iPN==PLAYER_1) and left or right)
 			self:zoom(0.6);
-			self:maxwidth(70/0.6);
+			self:maxwidth(85/0.6);
 			self:strokecolor(Color("Black"))
 			if iPN==PLAYER_1 then
 				self:x(15);
@@ -299,10 +300,18 @@ t[#t+1] = Def.ActorFrame {
 		SetCommand=function(self)
 			if dif and song and GetEXFCurrentSong_ShowHiScore() then
 				self:diffuse(BoostColor(color("#a064ff"),1.8));
-				self:settextf("%07d",sc);
+				if scoremode=='SuperNOVA2' or scoremode=='DDR A' then
+					self:settextf("%07d",sc);
+				else
+					self:settextf("%09d",sc);
+				end;
 			else
 				self:diffuse(0.5,0.5,0.5,0.5);
-				self:settextf("%07d",0);
+				if scoremode=='SuperNOVA2' or scoremode=='DDR A' then
+					self:settextf("%07d",0);
+				else
+					self:settextf("%09d",0);
+				end;
 			end;
 		end;
 	};

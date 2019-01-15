@@ -1,15 +1,6 @@
--- [ja] 他テーマの独自機能用 とそれに対応するための関数
+-- [ja] 他テーマの独自機能に対応するための関数
 
 -- *************************************************************** CyberiaStyle
-
---[[
-メモ : 
-	02 PCheckCS.lua
-	ScreenOptionsRFileCreate underlay.lua
---]]
-
--- *************************************************************** 対応用関数 
-
 -- [ja] ライバル名の取得 
 function GetCSRivalName(rivalname)
 	local under=string.find(rivalname,'_',0,true);
@@ -41,8 +32,8 @@ function GetCSRivalParameter(song,st,rivalname)
 	return ret;
 end;
 
--- [ja] CS用ライバルデータのスコアテキストからダンスポイント（%）を取得 
-function GetCSRivalPercent(st,str)
+-- [ja] CS用ライバルデータのスコアテキストからダンスポイント（スコア）を取得 
+function GetCSRivalDancePoint(st,str)
 	if st and str~='' then
 		local sp_str=split(':',str);
 		--[[
@@ -51,16 +42,21 @@ function GetCSRivalPercent(st,str)
 			[3] ダンスポイント（スコア）
 		--]]
 		if #sp_str>=3 then
-			local mpn=GAMESTATE:GetMasterPlayerNumber();
-			local radar=st:GetRadarValues(mpn);
-			local total=radar:GetValue('RadarCategory_TapsAndHolds');
-			local long=radar:GetValue('RadarCategory_Holds')+radar:GetValue('RadarCategory_Rolls');
-			local max_dp=(total+long)*3;
-			return tonumber(sp_str[3])/max_dp;
+			return tonumber(sp_str[3]);
 		else
 			return 0;
 		end;
 		return 0;
 	end;
 	return 0;
+end;
+
+-- [ja] CS用ライバルデータのスコアテキストからダンスポイント（%）を取得 
+function GetCSRivalPercent(st,str)
+	local mpn=GAMESTATE:GetMasterPlayerNumber();
+	local radar=st:GetRadarValues(mpn);
+	local total=radar:GetValue('RadarCategory_TapsAndHolds');
+	local long=radar:GetValue('RadarCategory_Holds')+radar:GetValue('RadarCategory_Rolls');
+	local max_dp=(total+long)*3;
+	return GetCSRivalDancePoint(st,str)/max_dp;
 end;

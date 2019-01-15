@@ -1199,6 +1199,44 @@ function GetGroupParameter_Path(group)
 	return gpath;
 end;
 
+-- [ja] MenuColorのような楽曲単位で指定できるパラメータの取得 
+function GetGroupParameterEx(song,prm)
+	if not song then
+		return '';
+	end;
+	local data = GetGroupParameter(song:GetGroupName(),prm);
+	if data == '' then
+		return '';
+	end;
+	-- [ja] この時点で #XXX:YYY;
+	local ret = '';
+	local folder = string.lower(GetSong2Folder(song));
+	local spl_data = split(':', data);
+	local def = '';
+	for i=1, #spl_data do
+		local spl_spl_data = split('|', spl_data[i]);
+		if i==1 then
+			-- [ja] デフォルト定義
+			def = spl_spl_data[1];
+		end;
+		if #spl_data > 1 then
+			-- [ja] フォルダ指定あり
+			for j=2, #spl_spl_data do
+				if folder == string.lower(spl_spl_data[j]) then
+					-- [ja] チェック対象フォルダが見つかった
+					ret = spl_spl_data[1];
+					break;
+				end;
+			end;
+		end;
+	end;
+	if ret == '' then
+		-- [ja] 定義がない場合はデフォルトを返却
+		ret = def;
+	end;
+	return ret;
+end;
+
 function IsPopupExDialog()
 	local angou={};
 	angou["20"]=" "; angou["21"]="!"; angou["22"]="\"";angou["23"]="#"; angou["24"]="$"; angou["25"]="%"; angou["26"]="&"; angou["27"]="\'";

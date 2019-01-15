@@ -1,5 +1,5 @@
 local t=Def.ActorFrame{};
-KillGroup();
+--KillGroup();
 
 t[#t+1]=Def.Actor{
 	OnCommand=function(self)

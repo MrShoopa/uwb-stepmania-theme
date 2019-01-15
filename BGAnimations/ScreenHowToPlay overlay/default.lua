@@ -1,4 +1,5 @@
 local t = Def.ActorFrame {};
+t[#t+1]=LoadActor(THEME:GetPathB("_Gameplay","Message"));
 
 local lifeWidth=SCREEN_WIDTH/4;
 
@@ -168,5 +169,6 @@ t[#t+1] = Def.ActorFrame{
 		end;
 	};
 };
+
 
 return t;

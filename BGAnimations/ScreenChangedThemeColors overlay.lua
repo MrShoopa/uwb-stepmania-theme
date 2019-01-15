@@ -33,7 +33,7 @@ local t = Def.ActorFrame{
 			-- [ja] 基本フォント 
 			local f=SaveFile(THEME:GetCurrentThemeDirectory().."Fonts/Common Normal.redir");
 			if tc["Mode"]==2 then
-				f:Write("_Armata");
+				f:Write("_Montserrat");
 			else
 				f:Write("_Orbitron");
 			end;

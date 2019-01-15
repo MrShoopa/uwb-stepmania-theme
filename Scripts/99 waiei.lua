@@ -1,3 +1,5 @@
+-- [ja] waiei1時に作成した関数、ただし2でも似たような機能はこっちに追加している
+
 -- [ja] 一時記憶用 
 local waiei={};
 function Setwaiei(name,var)
@@ -159,7 +161,7 @@ function GetStepZonePosX(pn)
 	local cs=GAMESTATE:GetCurrentStyle();
 	if cs then
 		local st=cs:GetStyleType();
-		if GAMESTATE:GetNumPlayersEnabled()==1 and Center1Player() then
+		if (GAMESTATE:GetNumPlayersEnabled()==1 and Center1Player()) or cs:ColumnsPerPlayer()>5 then
 			r=SCREEN_CENTER_X;
 		else
 			r=THEME:GetMetric("ScreenGameplay","PlayerP"..p..ToEnumShortString(st).."X");
@@ -300,6 +302,7 @@ else
 end;
 --]]
 
+-- [ja] wheelmodeに対応した画像パスを取得
 function GetSongGPath(wheelmode,song)
 	if wheelmode == "Jacket->BG" then
 		return GetSongGPath_JBG(song);
@@ -313,7 +316,7 @@ function GetSongGPath(wheelmode,song)
 	return GetSongGPath_JBN(song);
 end;
 
---[ja] もっともふさわしい画像のパスを返す（ジャケット→バナー） 
+--[ja] もっともふさわしい画像のパスを取得（ジャケット→バナー） 
 function GetSongGPath_JBN(song)
 	local gpath;
 	if song then
@@ -339,7 +342,7 @@ function GetSongGPath_JBN(song)
 	return gpath;
 end;
 
---[ja] もっともふさわしい画像のタイプを返す（ジャケット→バナー） 
+--[ja] もっともふさわしい画像のタイプを取得（ジャケット→バナー） 
 function GetSongGType_JBN(song)
 	local gtype;
 	if song then
@@ -365,7 +368,7 @@ function GetSongGType_JBN(song)
 	return gtype;
 end;
 
---[ja] もっともふさわしい画像のパスを返す（ジャケット→背景） 
+--[ja] もっともふさわしい画像のパスを取得（ジャケット→背景） 
 function GetSongGPath_JBG(song)
 	local gpath;
 	if song then
@@ -391,7 +394,7 @@ function GetSongGPath_JBG(song)
 	return gpath;
 end;
 
---[ja] もっともふさわしい画像のタイプを返す（ジャケット→背景） 
+--[ja] もっともふさわしい画像のタイプを取得（ジャケット→背景） 
 function GetSongGType_JBG(song)
 	local gtype;
 	if song then
@@ -417,7 +420,7 @@ function GetSongGType_JBG(song)
 	return gtype;
 end;
 
---[ja] もっともふさわしい画像のパスを返す（バナー→ジャケット） 
+--[ja] もっともふさわしい画像のパスを取得（バナー→ジャケット） 
 function GetSongGPath_BNJ(song)
 	local gpath;
 	if song then
@@ -443,7 +446,7 @@ function GetSongGPath_BNJ(song)
 	return gpath;
 end;
 
---[ja] もっともふさわしい画像のパスを返す（背景→ジャケット） 
+--[ja] もっともふさわしい画像のパスを取得（背景→ジャケット） 
 function GetSongGPath_BGJ(song)
 	local gpath;
 	if song then
@@ -469,7 +472,7 @@ function GetSongGPath_BGJ(song)
 	return gpath;
 end;
 
---[ja] もっともふさわしい画像のタイプを返す（バナー→ジャケット） 
+--[ja] もっともふさわしい画像のタイプを取得（バナー→ジャケット） 
 function GetSongGType_BNJ(song)
 	local gtype;
 	if song then
@@ -495,7 +498,7 @@ function GetSongGType_BNJ(song)
 	return gtype;
 end;
 
---[ja] もっともふさわしい画像のパスを返す（コース） 
+--[ja] もっともふさわしい画像のパスを取得（コース） 
 function GetCourseGPath(course)
 	local gpath;
 	if course then
@@ -563,7 +566,7 @@ function GetCourseBPath(course)
 	return gpath;
 end;
 
---[ja] 背景画像かfallbackのパスを返す 
+--[ja] 背景画像かfallbackのパスを取得 
 function GetSongBGPath(song)
 	local gpath;
 	if song then
@@ -579,7 +582,7 @@ function GetSongBGPath(song)
 	return gpath;
 end;
 
---[ja] バナーかfallbackのパスを返す 
+--[ja] バナーかfallbackのパスを取得 
 function GetSongOrCourseBannerPath(s_or_c)
 	local gpath;
 	if s_or_c then
@@ -595,7 +598,7 @@ function GetSongOrCourseBannerPath(s_or_c)
 	return gpath;
 end;
 
---[ja] もっともふさわしいグループバナー画像のパスを返す 
+--[ja] もっともふさわしいグループバナー画像のパスを取得
 function GetGroupGPath(group)
 	local gpath;
 	local gra="";
@@ -625,7 +628,7 @@ function GetGroupGPath(group)
 	return gpath;
 end;
 
---[ja] もっともふさわしいモード画像のパスを返す 
+--[ja] もっともふさわしいモード画像のパスを取得
 function GetModeGPath(mode)
 local wlabels={
 	"Portal",
@@ -687,29 +690,7 @@ local jk={"png","avi","flv","mp4","mpg","mpeg","jpg","jpeg","gif","bmp"};
 	return wlabelfile;
 end;
 
---[ja] もっともふさわしい画像のキャッシュファイルパスを返す 
---     理想としてはこのファイルを読み込んでから0.1秒後に本来の画像を読むことで
---     高速化を図ろうとしたが
---     ホイールの画像にsleepやlinear使うと動きがおかしくなるので没 
-function GetSongCachePath(song,gtype)
-	if song then
-		if gtype==3 or string.lower(gtype)=="jacket" then
-			if FILEMAN:DoesFileExist(song:GetSongDir().."/cache-jk.bmp") then
-				return song:GetSongDir().."/cache-jk.bmp";
-			end;
-			if ProductVersion()=="v5.0 alpha 1" then
-				if HasJacket_a1(song) then
-					return GetJacketPath_a1(song);
-				else
-				end;
-			else
-				return song:GetJacketPath();
-			end;
-		end;
-	end;
-	return "";
-end;
-
+-- [ja] 文字列のカラーコードをカラー型に変換
 function Str2Color(prm)
 	local c={"1.0","1.0","1.0","1.0"};
 	c=split(",",prm);
@@ -719,7 +700,7 @@ function Str2Color(prm)
 	return c;
 end;
 
--- [ja] ボス曲カラーの場合、赤を返す 
+-- [ja] ボス曲カラーの場合、赤を取得
 function GetSongColor_MeterType(song,_mettype)
 	local mettype=string.lower(_mettype);
 	local st=GAMESTATE:GetCurrentSteps(GAMESTATE:GetMasterPlayerNumber());
@@ -747,7 +728,7 @@ end;
 -- [ja] ボス曲カラーかどうか 
 function IsBossColor(song,metertype)
 	local ret=false;
-	local mettype=string.lower(metertype);
+	local mettype=string.lower(metertype or '');
 	local dm=0;
 	local st=GAMESTATE:GetCurrentSteps(GAMESTATE:GetMasterPlayerNumber());
 	local stt;
@@ -1038,7 +1019,7 @@ function GetSplitTitle(song)
 	return ret;
 end;
 
---[ja] フォルダ名からSong型を返す 
+--[ja] フォルダ名からSong型を取得 
 function GetFolder2Song(group,folder)
 	local gsongs=SONGMAN:GetSongsInGroup(group);
 	for i=1,#gsongs do
@@ -1049,7 +1030,7 @@ function GetFolder2Song(group,folder)
 	return false;
 end;
 
---[ja] 逆を作った気がするんだが見当たらないので 
+--[ja] Song型からフォルダ名を取得 
 function GetSong2Folder(song)
 	if song then
 		local _t=split("/",song:GetSongDir())

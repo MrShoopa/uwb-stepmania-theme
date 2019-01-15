@@ -266,7 +266,7 @@ end;
 	XXX1:YYY1;
 --]=]
 function GetTextBlock(filePath,ub_name)
-	if not FILEMAN:DoesFileExist(filePath) then
+	if not filePath or not FILEMAN:DoesFileExist(filePath) then
 		return "";
 	end;
 	local b_name=string.lower(ub_name);
@@ -491,7 +491,7 @@ function SaveCRSOneLine(filePath,section,prm,val)
 	f:Close();
 end;
 
--- [ja] ディレクトリ名からファイル名と拡張子を取得する
+-- [ja] ファイルパスからファイル名と拡張子を取得する
 function GetFileNameFormPath(path)
 	local ret={'',''};
 	if path then

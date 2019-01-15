@@ -30,7 +30,9 @@ local function WriteEnv(envName,envValue)
 	return setenv(envName,envValue)
 end
 
+local cfg={};
 function ReadPrefFromFile_Theme(name)
+--[[
 	local f = RageFileUtil.CreateRageFile()
 	local fullFilename = PrefPath..name..".cfg"
 	local fullOldFilename = PrefOldPath..name..".cfg"
@@ -53,15 +55,45 @@ function ReadPrefFromFile_Theme(name)
 		f:destroy()
 		return nil
 	end
+--]]
+	if not cfg or not cfg['LoadFlag'] then
+		waieiLoadPref();
+	end;
+	local section_name='main';
+	local split_name=split('%[',name);
+	if #split_name>1 then
+		local tmp=split('%]',(split_name[2]));
+		section_name=tmp[1];
+		name=split_name[1];
+	end;
+	local ret='';
+	if cfg[section_name] and cfg[section_name][name] then
+		ret = cfg[section_name][name];
+	end;
+	return ret;
 end
 
 function WritePrefToFile_Theme(name,value)
 	local f = RageFileUtil.CreateRageFile()
 	local fullFilename = PrefPath..name..".cfg"
+	if not cfg or not cfg['LoadFlag'] then
+		waieiLoadPref();
+	end;
 
+	local section_name='main';
+	local split_name=split('%[',name);
+	if #split_name>1 then
+		local tmp=split('%]',(split_name[2]));
+		section_name=tmp[1];
+		name=split_name[1];
+	end;
 	if f:Open(fullFilename, 2) then
 		f:Write( tostring(value) )
 		WriteEnv(name,value)
+		if not cfg[section_name] then
+			cfg[section_name]={};
+		end;
+		cfg[section_name][name]=tostring(value);
 	else
 		local fError = f:GetError()
 		Trace( "[FileUtils] Error writing to ".. fullFilename ..": ".. fError )
@@ -71,6 +103,7 @@ function WritePrefToFile_Theme(name,value)
 	end
 
 	f:destroy()
+	waieiSavePref();
 	return true
 end
 
@@ -98,7 +131,6 @@ end
 -- [ja] ファイルからの読み取り
 local loadflag=false;
 local cfgfile='./Save/waiei/Settings.ini';
-local cfg={};
 function waieiLoadPref()
 	if FILEMAN:DoesFileExist(cfgfile) then
 		local f=OpenFile(cfgfile);
@@ -118,17 +150,40 @@ function waieiLoadPref()
 			elseif string.find(l,"^.*=.*$") then
 				local prm=split(';',l)[1];
 				prms=split('=',prm);
-				cfg[section][string.lower(prms[1])]=prms[2];
+				cfg[section][prms[1]]=prms[2];
 			end;
 		end;
 		CloseFile(f);
+		cfg['LoadFlag']=true;
 	end;
 end;
 function waieiSavePref()
-	if not loadflag then
+	if not cfg or not cfg['LoadFlag'] then
 		waieiLoadPref();
-	else
 	end;
+	local f=SaveFile(cfgfile);
+	local save='';
+	for key, val in pairs(cfg) do
+		if key~='LoadFlag' then
+			save=save..'['..key..']\r\n';
+			for k, v in pairs(val) do
+				save=save..k..'='..(v or '')..'\r\n';
+			end;
+			save=save..'\r\n';
+		end;
+	end;
+--[[
+	table.sort(cfg['main'],
+		function(a,b)
+			return (string.upper(a) < string.upper(b))
+		end);
+	for k, v in pairs(cfg['main']) do
+		save=save..k..'='..(v or '')..'\r\n';
+	end;
+--]]
+	f:Write(save);
+	CloseFile(f);
+	waieiLoadPref();
 end;
 
 function GetUserPref_Theme(name)
@@ -142,7 +197,6 @@ end
 function SetUserPref_fallback(name,value)
 	return WritePrefToFile_fallback(name,value)
 end
--- [ja] ここまで_fallbackから抜き出し＋命令や変数名が被らないように修正 
 
 local function OptionNameString(str)
 	return THEME:GetString('OptionNames',str)
@@ -196,6 +250,7 @@ function InitUserPrefs_Theme()
 		UserColor = 'Blue',
 		UserColorPath = '',
 		UserLife = 'Default',
+		UserUserHiScoreType = 'Score',
 		UserCustomScore = 'Off',
 		UserMinCombo = 'TapNoteScore_W3',
 		UserHideNotes = 'Auto',
@@ -210,7 +265,11 @@ function InitUserPrefs_Theme()
 		UserRadarOverLimit = 'On',
 		UserActiveGroupOnly = 'On',
 		UserJumpCombo = 'Any',
-		UserRollCombo = 'Off'
+		UserRollCombo = 'Off',
+		UserStage = 'Off',
+		UserAnimationFPS = '60',
+		UserCSRival = 'Off',
+		ThemeColor = '2|BlueIce|Main|2'
 	}
 	local default='[Main]\r\n';
 	for k, v in pairs(Prefs) do
@@ -381,8 +440,8 @@ function UserScreenFilter()
 			end;
 			if GetUserPref_Theme("UserScreenFilter" .. nm) ~= nil then
 				local bShow=GetUserPref_Theme("UserScreenFilter" .. nm);
-				if bShow == 'Off' then
-					list[1] = true
+				if bShow == '100%' then
+					list[5] = true
 				elseif bShow == '25%' then
 					list[2] = true
 				elseif bShow == '50%' then
@@ -390,7 +449,7 @@ function UserScreenFilter()
 				elseif bShow == '75%' then
 					list[4] = true
 				else
-					list[5] = true
+					list[1] = true
 				end;
 			else
 				list[1] = true
@@ -1033,7 +1092,7 @@ function UserCustomScore()
 		SelectType = "SelectOne",
 		OneChoiceForAllPlayers = true,
 		ExportOnChange = false,
-		Choices = { 'Off','3.9',"Hybrid","SuperNOVA2","DancePoints" },
+		Choices = { 'Off','3.9',"Hybrid","SuperNOVA2","DDR A","DancePoints" },
 		LoadSelections = function(self, list, pn)
 			if GetUserPref_Theme("UserCustomScore") ~= nil then
 				if GetUserPref_Theme("UserCustomScore") == '3.9' then
@@ -1042,8 +1101,10 @@ function UserCustomScore()
 					list[3] = true
 				elseif GetUserPref_Theme("UserCustomScore") == 'SuperNOVA2' then
 					list[4] = true
-				elseif GetUserPref_Theme("UserCustomScore") == 'DancePoints' then
+				elseif GetUserPref_Theme("UserCustomScore") == 'DDR A' then
 					list[5] = true
+				elseif GetUserPref_Theme("UserCustomScore") == 'DancePoints' then
+					list[6] = true
 				else
 					list[1] = true
 				end;
@@ -1061,6 +1122,8 @@ function UserCustomScore()
 			elseif list[4] then
 				bSave='SuperNOVA2';
 			elseif list[5] then
+				bSave='DDR A';
+			elseif list[6] then
 				bSave='DancePoints';
 			else
 				bSave='Off';
@@ -1584,6 +1647,104 @@ function UserRollCombo()
 	return t
 end
 
+function UserStage()
+	local t = {
+		Name = "UserStage",
+		LayoutType = "ShowAllInRow",
+		SelectType = "SelectOne",
+		OneChoiceForAllPlayers = true,
+		ExportOnChange = false,
+		Choices = { 'Off','On' },
+		LoadSelections = function(self, list, pn)
+			if GetUserPref_Theme("UserStage") ~= nil then
+				if GetUserPref_Theme("UserStage") == 'On' then
+					list[2] = true
+				else
+					list[1] = true
+				end;
+			else
+				list[1] = true
+			end
+		end,
+		SaveSelections = function(self, list, pn)
+			local bSave;
+			if list[1] then
+				bSave='Off';
+			else
+				bSave='On';
+			end;
+			SetUserPref_Theme("UserStage", bSave);
+		end
+	}
+	setmetatable(t, t)
+	return t
+end
+
+function UserHiScoreType()
+	local t = {
+		Name = "UserHiScoreType",
+		LayoutType = "ShowAllInRow",
+		SelectType = "SelectOne",
+		OneChoiceForAllPlayers = true,
+		ExportOnChange = false,
+		Choices = { 'Score','DancePoints' },
+		LoadSelections = function(self, list, pn)
+			if PREFSMAN:GetPreference("PercentageScoring") ~= nil then
+				if tobool(PREFSMAN:GetPreference("PercentageScoring")) then
+					list[2] = true
+				else
+					list[1] = true
+				end;
+			else
+				list[1] = true
+			end
+		end,
+		SaveSelections = function(self, list, pn)
+			local bSave;
+			if list[1] then
+				PREFSMAN:SetPreference("PercentageScoring",false);
+			else
+				PREFSMAN:SetPreference("PercentageScoring",true);
+			end;
+		end
+	}
+	setmetatable(t, t)
+	return t
+end
+
+function UserCSRival()
+	local t = {
+		Name = "UserCSRival",
+		LayoutType = "ShowAllInRow",
+		SelectType = "SelectOne",
+		OneChoiceForAllPlayers = true,
+		ExportOnChange = false,
+		Choices = { 'Off','On' },
+		LoadSelections = function(self, list, pn)
+			if GetUserPref_Theme("UserCSRival") ~= nil then
+				if GetUserPref_Theme("UserCSRival") == 'On' then
+					list[2] = true
+				else
+					list[1] = true
+				end;
+			else
+				list[1] = true
+			end
+		end,
+		SaveSelections = function(self, list, pn)
+			local bSave;
+			if list[1] then
+				bSave='Off';
+			else
+				bSave='On';
+			end;
+			SetUserPref_Theme("UserCSRival", bSave);
+		end
+	}
+	setmetatable(t, t)
+	return t
+end
+
 -- --------------------------------------------------------------------------------
 
 function SetWheelMode()
@@ -1745,14 +1906,14 @@ end
 function List_PlayerOptions()
 	local ret="";
 	if IsEXFolder() then
-		ret="1,"..(GetSMVersion()>50 and "NN" or "8")..",14,2,3A,3B,YA,4,5,6,R,7,9,10,11,12,13,SF,SA,17,18,ST,SC";
+		ret="1,"..(GetSMVersion()>=90 and "NN" or "8")..",14,2,3A,3B,YA,4,5,6,R,7,9,10,11,12,13,SF,SA,17,18,ST,SC";
 	elseif IsDrill() then
-		ret="1,"..(GetSMVersion()>50 and "NN" or "8")..",14,2,4,5,7,SF,17,18,ST,SC";
+		ret="1,"..(GetSMVersion()>=90 and "NN" or "8")..",14,2,4,5,7,SF,17,18,ST,SC";
 	else
 		if GAMESTATE:IsCourseMode() then
-			ret="1,"..(GetSMVersion()>50 and "NN" or "8")..",14,2,3A,3B,YA,4,5,6,R,7,9,10,11,12,13,16,SF,SA,17,18,ST,SC";
+			ret="1,"..(GetSMVersion()>=90 and "NN" or "8")..",14,2,3A,3B,YA,4,5,6,R,7,9,10,11,12,13,16,SF,SA,17,18,ST,SC";
 		else
-			ret="1,"..(GetSMVersion()>50 and "NN" or "8")..",14,2,3A,3B,YA,4,5,6,R,7,9,10,11,12,13,DF,SF,SA,17,18,ST,SC";
+			ret="1,"..(GetSMVersion()>=90 and "NN" or "8")..",14,2,3A,3B,YA,4,5,6,R,7,9,10,11,12,13,DF,SF,SA,17,18,ST,SC";
 		end;
 	end;
 	return ret;
@@ -1770,6 +1931,6 @@ end;
 
 function List_DrillOptions()
 	local ret="";
-	ret=""..(GetSMVersion()>50 and "NN" or "8")..",SF,17,18,ST,SC";
+	ret=""..(GetSMVersion()>=90 and "NN" or "8")..",SF,17,18,ST,SC";
 	return ret;
 end;

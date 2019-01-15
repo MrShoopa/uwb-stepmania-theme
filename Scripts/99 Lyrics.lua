@@ -7,7 +7,7 @@ function Lyric_Egg_S()
 			if params.Name=="LyricEgg" then
 				lrc_egg=(not lrc_egg);
 			--	Setwaiei("LyricEgg",lrc_egg);
-				SetUserPref_Theme("UserLyricEgg",lrc_egg);
+				SetUserPref_Theme("UserLyricEgg",lrc_egg and 'true' or 'false');
 			end;
 		end;
 		LoadActor(THEME:GetPathS("Common","start"))..{
@@ -54,7 +54,7 @@ function LyricInit()
 		local l=f:GetLine();
 		local ll=string.lower(l);
 		--[ja] [00:00:00]XXX のパターンに合致 
-		if string.find(ll,"^.*%[%d.*%].*") then
+		if string.find(ll,"^.*%[%d.+%d.+%d%].*") then
 			lrc_max=lrc_max+1
 			local t1=split("%[",l)[2];
 			local t2=split("%]",t1);

@@ -16,6 +16,14 @@ local meter_type=GetUserPref_Theme("UserMeterType");
 
 t[#t+1] = StandardDecorationFromFileOptional("AlternateHelpDisplay","AlternateHelpDisplay");
 
+--[[
+t[#t+1]=LoadActor(THEME:GetPathG("_Filter","blur"),
+THEME:GetPathB("ScreenWithMenuElements","background"),
+10,true,"")..{
+	OnCommand=cmd(finishtweening;diffusealpha,0;linear,0.5;diffusealpha,0.7);
+	OffCommand=cmd(finishtweening);
+};
+--]]
 t2[#t2+1] = Def.ActorFrame{
 	GoToEXFMessageCommand=cmd(playcommand,"Off");
 	CodeCommand=function(self,params)
@@ -56,18 +64,48 @@ t2[#t2+1] = Def.ActorFrame{
 		CurrentSongChangedMessageCommand=cmd(playcommand,"Set");
 		CurrentCourseChangedMessageCommand=cmd(playcommand,"Set");
 	};
+	--[[
+	Def.ActorFrame{
+		FOV=90;
+		LoadActor("wheel")..{
+			CodeMessageCommand=function(self,params)
+				if params.Name=="Left" then
+					MESSAGEMAN:Broadcast("SetSong",{Move="Left"});
+				elseif params.Name=="Right" then
+					MESSAGEMAN:Broadcast("SetSong",{Move="Right"});
+				end;
+			end;
+		};
+		InitCommand=function(self)
+			self:x(THEME:GetMetric("ScreenSelectMusic","MusicWheelX"));
+			self:y(THEME:GetMetric("ScreenSelectMusic","MusicWheelY")-40);
+			self:zoom(tonumber(TC_GetRatioPrm(TC_GetMetric("Wheel","ZoomRatio"))));
+			self:addx(tonumber(TC_GetRatioPrm(TC_GetMetric("Wheel","PositionXRatio"))));
+			self:addy(tonumber(TC_GetRatioPrm(TC_GetMetric("Wheel","PositionYRatio"))));
+			self:addz(tonumber(TC_GetRatioPrm(TC_GetMetric("Wheel","PositionZRatio"))));
+		end;
+	};
+	--]]
 	Def.ActorProxy{
 		OnCommand=function(self)
 			local wheel = SCREENMAN:GetTopScreen():GetChild('MusicWheel');
 			self:SetTarget(wheel);
-			self:zoomx(TC_GetMetric("Wheel","ZoomX"));
-			self:zoomy(TC_GetMetric("Wheel","ZoomY"));
-			self:zoomz(TC_GetMetric("Wheel","ZoomZ"));
+			local prmZoomX=TC_GetMetric("Wheel","ZoomX")*tonumber(TC_GetRatioPrm(TC_GetMetric("Wheel","ZoomRatio")));
+			local prmZoomY=TC_GetMetric("Wheel","ZoomY")*tonumber(TC_GetRatioPrm(TC_GetMetric("Wheel","ZoomRatio")));
+			local prmZoomZ=TC_GetMetric("Wheel","ZoomZ")*tonumber(TC_GetRatioPrm(TC_GetMetric("Wheel","ZoomRatio")));
+			self:halign(SCREEN_WIDTH/2);
+			self:valign(SCREEN_HEIGHT/2);
+			self:zoomx(prmZoomX);
+			self:zoomy(prmZoomY);
+			self:zoomz(prmZoomZ);
+			self:rotationx(TC_GetMetric("Wheel","RotateX"));
+			self:rotationy(TC_GetMetric("Wheel","RotateY"));
+			self:rotationz(TC_GetMetric("Wheel","RotateZ"));
 			self:x(GAMESTATE:IsCourseMode() and -105 or 0);
 			-- [ja] ProxyにZoomを適応させるとズレるので修正 
-			self:addx(THEME:GetMetric("ScreenSelectMusic","MusicWheelX")*(1.0-TC_GetMetric("Wheel","ZoomX")));
-			self:addy(THEME:GetMetric("ScreenSelectMusic","MusicWheelY")*(1.0-TC_GetMetric("Wheel","ZoomY")));
-		--	self:addz(1.0-TC_GetMetric("Wheel","ZoomZ"));
+			self:addx(SCREEN_CENTER_X+TC_GetMetric("Wheel","PosX"));
+			self:addy(SCREEN_CENTER_Y+TC_GetMetric("Wheel","PosY"));
+			--(cmd(rotationy,0;linear,3;rotationy,3600))(self);
 			self:queuecommand("On2");
 		end;
 		On2Command=TC_GetCommand("Wheel","OnCommand");
@@ -83,10 +121,12 @@ t2[#t2+1] = Def.ActorFrame{
 			self:rotationx(90);
 		end;
 	};
-	LoadActor(TC_GetPath("Wheel","highlight"))..{
+	Def.ActorFrame{
+		FOV=90;
 		OnCommand=function(self)
-			self:x(THEME:GetMetric("ScreenSelectMusic","MusicWheelX"));
-			self:y(THEME:GetMetric("ScreenSelectMusic","MusicWheelY"));
+			self:x(THEME:GetMetric("ScreenSelectMusic","MusicWheelX")+TC_GetMetric("Wheel","PosX")+TC_GetMetric("Wheel","LightPosX"));
+			self:y(THEME:GetMetric("ScreenSelectMusic","MusicWheelY")+TC_GetMetric("Wheel","PosY")+TC_GetMetric("Wheel","LightPosY"));
+			self:z(TC_GetMetric("Wheel","PosZ")+TC_GetMetric("Wheel","LightPosZ"));
 			self:effectclock("bgm");
 			self:diffuseshift();
 			self:effectcolor1(color("1,1,1,0.5"));
@@ -94,14 +134,36 @@ t2[#t2+1] = Def.ActorFrame{
 			self:zoomy(0);
 			self:sleep(0.3);
 			self:linear(0.2);
-			self:zoomx(TC_GetMetric("Wheel","ZoomX"));
-			self:zoomy(TC_GetMetric("Wheel","ZoomY"));
-			self:zoomz(TC_GetMetric("Wheel","ZoomZ"));
+			self:zoomx(TC_GetMetric("Wheel","ZoomX")*tonumber(TC_GetRatioPrm(TC_GetMetric("Wheel","ZoomRatio"))));
+			self:zoomy(TC_GetMetric("Wheel","ZoomY")*tonumber(TC_GetRatioPrm(TC_GetMetric("Wheel","ZoomRatio"))));
+			self:zoomz(TC_GetMetric("Wheel","ZoomZ")*tonumber(TC_GetRatioPrm(TC_GetMetric("Wheel","ZoomRatio"))));
+			self:rotationx(TC_GetMetric("Wheel","RotateX"));
+			self:rotationy(TC_GetMetric("Wheel","RotateY"));
+			self:rotationz(TC_GetMetric("Wheel","RotateZ"));
 		end;
 		OffCommand=function(self)
 			self:linear(0.1);
 			self:zoomx(0);
 		end;
+		LoadActor(TC_GetPath("Wheel","highlight"))..{
+			OnCommand=function(self)
+				if TC_GetwaieiMode()==2 then
+					self:zoomx(TC_GetMetric("Wheel","CZoomX"));
+					self:zoomy(TC_GetMetric("Wheel","CZoomY"));
+					self:zoomz(TC_GetMetric("Wheel","CZoomZ"));
+					self:rotationx(TC_GetMetric("Wheel","CRotateX"));
+					self:rotationy(TC_GetMetric("Wheel","CRotateY"));
+					self:rotationz(TC_GetMetric("Wheel","CRotateZ"));
+					if TC_GetMetric("Wheel","Flow")=='X' then
+						self:x(TC_GetMetric("Wheel","CPosX"));
+						self:y(TC_GetMetric("Wheel","CPosY"));
+					else
+						self:x(TC_GetMetric("Wheel","CPosX"));
+						self:y(TC_GetMetric("Wheel","CPosY"));
+					end;
+				end;
+			end;
+		};
 	};
 --	StandardDecorationFromFileOptional("DifficultyList","DifficultyList");
 --	StandardDecorationFromFileOptional("CourseContentsList","CourseContentsList");
@@ -283,24 +345,6 @@ else
 end;
 
 t[#t+1]= t2;
-t[#t+1]= LoadActor(THEME:GetPathG('_Avatar','graphics/show'),40,false,0.75)..{
-	InitCommand=function(self)
-		if TC_GetwaieiMode()==2 then
-			if SCREEN_WIDTH/SCREEN_HEIGHT<1.6 then
-				self:y(160);
-			else
-				self:y(90);
-			end;
-		else
-			if SCREEN_WIDTH/SCREEN_HEIGHT<1.6 then
-				self:y(80);
-			else
-				self:y(90);
-			end;
-		end;
-	end;
-};
 
 end;	-- if not getenv("Drill") then
-
 return t

@@ -120,17 +120,22 @@ t[#t+1]=Def.ActorFrame{
 	};
 };
 t[#t+1]=Def.ActorFrame{
-	LoadActor(THEME:GetPathG("EditMenu","Left"))..{
-		InitCommand=function(self)
-			self:x(SCREEN_CENTER_X-270);
-			self:y(SCREEN_CENTER_Y+150);
-		end;
-	};
-	LoadActor(THEME:GetPathG("EditMenu","Right"))..{
-		InitCommand=function(self)
-			self:x(SCREEN_CENTER_X+270);
-			self:y(SCREEN_CENTER_Y+150);
-		end;
+	Def.ActorFrame{
+		InitCommand=cmd(Center;);
+		PrevColorMessageCommand=cmd(linear,0.2;diffusealpha,1);
+		SelColorMessageCommand=cmd(linear,0.2;diffusealpha,0);
+		LoadActor(THEME:GetPathG("EditMenu","Left"))..{
+			InitCommand=function(self)
+				self:x(-270);
+				self:y(150);
+			end;
+		};
+		LoadActor(THEME:GetPathG("EditMenu","Right"))..{
+			InitCommand=function(self)
+				self:x(270);
+				self:y(150);
+			end;
+		};
 	};
 	--[[
 	LoadActor(THEME:GetPathG("ScreenWithMenuElements","header"))..{
@@ -153,13 +158,72 @@ t[#t+1]=Def.ActorFrame{
 		end;
 	};
 	--]]
+	Def.ActorFrame{
+		InitCommand=cmd(Center;diffusealpha,0);
+		SelColorMessageCommand=cmd(linear,0.2;diffusealpha,1);
+		PrevColorMessageCommand=cmd(linear,0.2;diffusealpha,0);
+		Def.Quad{
+			InitCommand=cmd(zoomto,SCREEN_WIDTH,SCREEN_HEIGHT;diffuse,0,0,0,0.35);
+		};
+		Def.Quad{
+			InitCommand=cmd(zoomto,SCREEN_WIDTH,150;diffuse,0,0,0,0.5);
+		};
+		Def.Quad{
+			InitCommand=cmd(zoomto,SCREEN_WIDTH,100;diffuse,0,0,0,0.5);
+		};
+		LoadActor(THEME:GetPathG("EditMenu","Left"))..{
+			InitCommand=function(self)
+				self:x(-270);
+				self:y(0);
+			end;
+		};
+		LoadActor(THEME:GetPathG("EditMenu","Right"))..{
+			InitCommand=function(self)
+				self:x(270);
+				self:y(0);
+			end;
+		};
+		LoadFont("Common Normal")..{
+			InitCommand=cmd(x,0;y,-20;
+				zoom,0.75;
+				diffuse,Color("White");strokecolor,Color("Black");
+				settext,C_GetLang('screen1','SelectSubColor'));
+		};
+		LoadFont("Common Normal")..{
+			InitCommand=cmd(x,0;y,15;
+				zoom,1.2;
+				diffuse,Color("White");strokecolor,Color("Black");
+				settext,'Main');
+			SetMessageCommand=function(self,params)
+				if params.tc_sub and params.tc_sub[params.tc_col] then
+					self:settext(params.tc_sub[params.tc_col]);
+				end;
+			end;
+		};
+		LoadFont("Common Normal")..{
+			InitCommand=cmd(x,230;y,-62;
+				horizalign,right;zoom,0.75;
+				diffuse,Color("White");strokecolor,Color("Black");
+				settext,'');
+			SelColorMessageCommand=function(self,params)
+				if params.cols then
+					self:settext('1/'..#params.cols);
+				end;
+			end;
+			SetMessageCommand=function(self,params)
+				if params.tc_sub and params.tc_sub[params.tc_col] then
+					self:settext(params.tc_col..'/'..#params.tc_sub);
+				end;
+			end;
+		};
+	};
 	Def.Quad{
 		InitCommand=cmd(Center;FullScreen;diffuse,Color("Blue");diffusealpha,0;blend,"BlendMode_Add");
-		StartMessageCommand=cmd(linear,0.2;diffusealpha,1;linear,0.2;diffusealpha,0);
+		StartBlackoutMessageCommand=cmd(linear,0.2;diffusealpha,1;linear,0.2;diffusealpha,0);
 	};
 	Def.Quad{
 		InitCommand=cmd(Center;FullScreen;diffuse,0,0,0,0);
-		StartMessageCommand=cmd(sleep,0.2;linear,0.2;diffusealpha,1);
+		StartBlackoutMessageCommand=cmd(sleep,0.2;linear,0.2;diffusealpha,1);
 	};
 	LoadActor(THEME:GetPathB('ScreenWithMenuElements','in'));
 };

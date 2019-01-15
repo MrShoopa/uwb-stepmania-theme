@@ -96,7 +96,7 @@ t[#t+1] = Def.ActorFrame{
 		MESSAGEMAN:Broadcast("SetSong",{Move=params.Move,Song=song});
 	end;
 	StartMessageCommand=function(self)
-		self:sleep(0.4);
+		self:sleep(1.0);
 		self:queuecommand("NextScreen");
 	end;
 	NextScreenCommand=function(self)
@@ -167,5 +167,15 @@ t[#t+1] = Def.ActorFrame{
 		OnCommand=cmd(diffusealpha,1.0;sleep,0.5;linear,0.5;diffusealpha,0);
 	};
 };
+
+-- [ja] アバターは最前面表示
+t[#t+1]= LoadActor(THEME:GetPathG('_Avatar','graphics/show'),30,false,0.375)..{
+	InitCommand=function(self)
+		self:y(SCREEN_HEIGHT-35);
+	end;
+};
+
+-- [ja] 決定後のエフェクト
+t[#t+1] = LoadActor(THEME:GetPathB('_ScreenSelectMusic','overlay_offcommand/waiei'..TC_GetwaieiMode()));
 
 return t;

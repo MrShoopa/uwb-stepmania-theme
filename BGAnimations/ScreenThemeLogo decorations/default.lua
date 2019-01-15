@@ -1,4 +1,4 @@
-local text="zoom,2;diffusealpha,0;decelerate,1.0;zoom,1;diffusealpha,1";
+local text="zoom,2;diffusealpha,0;spring,1.0;zoom,1;diffusealpha,1";
 local t=Def.ActorFrame{
 	LoadActor(THEME:GetPathG("ScreenTitleMenu","logo"))..{
 		OnCommand=function(self)
@@ -8,5 +8,4 @@ local t=Def.ActorFrame{
 		On2Command=loadstring("return cmd("..text..");")();
 	};
 };
-
 return t;

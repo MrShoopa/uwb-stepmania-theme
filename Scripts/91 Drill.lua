@@ -43,7 +43,7 @@ _music drill (loop).ogg
 別途下記ファイルに関数を書いておく必要があります 
 ScreenTitleMenu overlay	 → DrillOptionsReset_inTitle();
 ScreenSelectMusic in	 → DrillSelectMusic_in();
-ScreenGameplay overlay	 → DrillGameplay()();
+ScreenGameplay overlay	 → DrillGameplay();
 ScreenEvaluation in		 → DrillEvaluation_in();
 ]]--
 
@@ -343,7 +343,6 @@ function InitDrillCategory()
 		InitDRFile();
 		InitDRInfo();
 		DrillStart();
-	--	setenv("EventMode",GAMESTATE:IsEventMode());
 		SetUserPref_Theme("DrillEventMode",GAMESTATE:IsEventMode());
 		GAMESTATE:SetTemporaryEventMode(true);
 		SetDrillPlayer((GAMESTATE:IsHumanPlayer(PLAYER_1)) and PLAYER_1 or PLAYER_2);
@@ -440,15 +439,12 @@ function InitDrillCategory()
 		if GetUserPref_Theme("DrillOldTLevel") and GetUserPref_Theme("DrillOldTLevel")~="" then
 			PREFSMAN:SetPreference("TimingWindowScale",GetUserPref_Theme("DrillOldTLevel"));
 		end;
-		if GetUserPref_Theme("DrillOldW1") and GetUserPref_Theme("DrillOldTLevel")~="" then
+		if GetUserPref_Theme("DrillOldW1") and GetUserPref_Theme("DrillOldW1")~="" then
 			PREFSMAN:SetPreference("AllowW1",GetUserPref_Theme("DrillOldW1"));
 		end;
 		SetUserPref_Theme("DrillOldLLevel",PREFSMAN:GetPreference("LifeDifficultyScale"));
 		SetUserPref_Theme("DrillOldTLevel",PREFSMAN:GetPreference("TimingWindowScale"));
 		SetUserPref_Theme("DrillOldW1",PREFSMAN:GetPreference("AllowW1"));
-	--	setenv("DrillOldLLevel",PREFSMAN:GetPreference("LifeDifficultyScale"));
-	--	setenv("DrillOldTLevel",PREFSMAN:GetPreference("AllowW1"));
-	--	setenv("DrillOldW1",PREFSMAN:GetPreference("AllowW1"));
 		PREFSMAN:SetPreference("AllowW1","AllowW1_Everywhere");
 		local pdir=PROFILEMAN:GetProfileDir('ProfileSlot_Player1');
 		if pdir=="" then
@@ -491,9 +487,15 @@ end;
 
 function KillDrill()
 	if IsDrill() then
-		PREFSMAN:SetPreference("LifeDifficultyScale",GetUserPref_Theme("DrillOldLLevel"));
-		PREFSMAN:SetPreference("TimingWindowScale",GetUserPref_Theme("DrillOldTLevel"));
-		PREFSMAN:SetPreference("AllowW1",GetUserPref_Theme("DrillOldW1"));
+        if GetUserPref_Theme("DrillOldLLevel") and GetUserPref_Theme("DrillOldLLevel")~="" then
+            PREFSMAN:SetPreference("LifeDifficultyScale",GetUserPref_Theme("DrillOldLLevel"));
+        end;
+        if GetUserPref_Theme("DrillOldTLevel") and GetUserPref_Theme("DrillOldTLevel")~="" then
+            PREFSMAN:SetPreference("TimingWindowScale",GetUserPref_Theme("DrillOldTLevel"));
+        end;
+        if GetUserPref_Theme("DrillOldW1") and GetUserPref_Theme("DrillOldW1")~="" then
+            PREFSMAN:SetPreference("AllowW1",GetUserPref_Theme("DrillOldW1"));
+        end;
 	--	setenv("DrillOldLLevel",false);
 	--	setenv("DrillOldTLevel",false);
 		if GetUserPref_Theme("DrillEventMode") or GetUserPref_Theme("DrillEventMode")=="" then
@@ -511,11 +513,12 @@ function KillDrill()
 	end;
 end;
 
+local an='';
 function DrillSelectMusic_in()
 	local ActorDrill=Def.ActorFrame{
 		InitCommand=function(self)
-			if not getenv("Announcers") then
-				InputCurrentAnnouncer();
+			if not an and an~='' then
+				an = GetCurrentAnnouncer();
 				MuteAnnouncer();
 			end;
 		end;
@@ -755,13 +758,10 @@ function ReadDrillData()
 		drLevel=drLevel+1;
 	end;
 	tmp["Level"]=drLevel-1;	-- [ja] 最高レベル 
-	--setenv("drInfo",tmp);
 	RepDRInfo(tmp);
-	--setenv("lvInfo",lvInfo);
 end;
 
 function InitDrillLevel()
-	--local lvScore={};
 	InitLVScore();
 	-- [ja] セーブデータの読み取り 
 	for i=1,GetDRInfo("Level") do
@@ -970,9 +970,6 @@ end;
 
 -- [ja] クリア判別とデータ保存 
 function InitDrillResult()
-	--local drInfo=getenv("drInfo");
-	--local lvInfo=getenv("lvInfo");
-	--local lvScore=getenv("lvScore");
 	SetSelDrillResult(0);
 	local sys_sellevel=GetSelDrillLevel();
 	local DrillScore=GetDrillScoreArray();

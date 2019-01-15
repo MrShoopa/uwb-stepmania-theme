@@ -21,6 +21,7 @@ t[#t+1]=Def.ActorFrame{
 			SetUserPref_Theme("waieiThemeVersion",GetThemeVersionInformation("Version"));
 		end;
 		OnCommand=function(self)
+			SCREENMAN:SetNewScreen(Branch.AfterInit());
 			self:sleep(0.7);
 			self:queuecommand("KeyUnlock");
 		end;
@@ -55,7 +56,7 @@ t[#t+1]=Def.ActorFrame{
 	};
 	-- [ja] 画像 
 	Def.Sprite{
-		InitCommand=cmd(Center;diffusealpha,0;LoadBackground,THEME:GetPathG("ScreenTitleMenu","logo/_logo"));
+		InitCommand=cmd(Center;diffusealpha,0;LoadBackground,THEME:GetPathG("_Logo/logo","main"));
 		OnCommand=function(self)
 			(cmd(sleep,0.4;zoom,1;linear,0.1;diffusealpha,1))(self);
 			if SCREEN_HEIGHT/SCREEN_WIDTH<0.65 then

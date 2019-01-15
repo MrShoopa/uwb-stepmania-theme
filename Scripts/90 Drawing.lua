@@ -3,7 +3,7 @@
 -- [ja] 円 
 -- [ja] rot...開始角度（0～31） 
 -- [ja] ang...描画角度（0～32） 
-function DrawCircle32(type,col,rot,ang)
+function DrawCircle32(circle_type,col,rot,ang)
 	if ang<=0 then
 		return;
 	end;
@@ -15,7 +15,7 @@ function DrawCircle32(type,col,rot,ang)
 	local t=Def.ActorFrame{};
 	for i=rot,rot+ang do
 	t[#t+1]=Def.ActorFrame{
-		LoadActor(THEME:GetPathG("_objects/_circle32",""..type))..{
+		LoadActor(THEME:GetPathG("_objects/_circle32",""..circle_type))..{
 			InitCommand=cmd(vertalign,bottom;
 				diffuse,col;rotationz,11.25*i);
 		};
@@ -24,7 +24,7 @@ function DrawCircle32(type,col,rot,ang)
 	return t;
 end;
 
-function DrawCircle64(type,col,rot,ang)
+function DrawCircle64(circle_type,col,rot,ang)
 	if ang<=0 then
 		return;
 	end;
@@ -37,7 +37,7 @@ function DrawCircle64(type,col,rot,ang)
 	for i=rot,rot+ang do
 	t[#t+1]=Def.ActorFrame{
 		OnCommand=cmd(zoom,0;sleep,0.005*i;linear,0.2;zoom,1);
-		LoadActor(THEME:GetPathG("_objects/_circle64",""..type))..{
+		LoadActor(THEME:GetPathG("_objects/_circle64",""..circle_type))..{
 			InitCommand=cmd(vertalign,bottom;
 				diffuse,col;rotationz,5.625*i);
 		};

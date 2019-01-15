@@ -22,7 +22,7 @@ local t=Def.ActorFrame {
 		--bob;effectmagnitude,50,0,35;
 	};
 	LoadActor("../fan_1") .. {
-		InitCommand=cmd(x,SCREEN_CENTER_X-150;y,80;zoom,1.5;rotationy,75;rotationx,-25;diffuse,ColorLightTone(color("#0064FF"));spin;effectmagnitude,0,0,20;blend,'BlendMode_Add');
+		InitCommand=cmd(x,SCREEN_CENTER_X-150;y,80;zoom,1.5;rotationy,75;rotationx,-25;diffuse,0.8,0.9,1.0,0.8;spin;effectmagnitude,0,0,20;blend,'BlendMode_Add');
 	};
 	LoadActor("_particleLoader") .. {
 		InitCommand=cmd(x,-SCREEN_CENTER_X;y,-SCREEN_CENTER_Y);

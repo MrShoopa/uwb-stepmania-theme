@@ -1,21 +1,43 @@
 local t = Def.ActorFrame {};
 
 t[#t+1]=DrillGameplay();
+t[#t+1]=LoadActor(THEME:GetPathB("_Gameplay","Message"));
 
+-- SPEED ASSIST
 if not IsDrill() then
 	t[#t+1] = LoadActor("speedassist",PLAYER_1);
 	t[#t+1] = LoadActor("speedassist",PLAYER_2);
 end;
 
-local wait=0;
+-- [ja] 開始1.5秒間ゲーム停止
+-- [ja] …の予定だったけど一部曲の背景動画がすごくずれるので0.5秒に変更
+t[#t+1]=Def.ActorFrame{
+	OnCommand=function(self)
+		if GetSMVersion()>=80 and TC_GetwaieiMode()==2 then
+			local game = SCREENMAN:GetTopScreen();
+			if game then
+				self:queuecommand('StartPause');
+				self:linear(0.5);
+				self:queuecommand('ClearPause');
+			end;
+		end;
+	end;
+	StartPauseCommand=function(self)
+		SCREENMAN:GetTopScreen():PauseGame(true);
+	end;
+	ClearPauseCommand=function(self)
+		SCREENMAN:GetTopScreen():PauseGame(false);
+	end;
+};
 
+-- [ja] デモ画面での曲名表示
 if not GAMESTATE:IsDemonstration() then
 	t[#t+1] = Def.ActorFrame{
 		StandardDecorationFromFileOptional("SongTitle","SongTitle")..{
 			OnCommand=function(self)
 				self:zoomx(2);
 				self:zoomy(0);
-				self:sleep(wait+0.5);
+				self:sleep(0.5);
 				self:linear(0.2);
 				self:zoomx(1);
 				self:zoomy(1);
@@ -23,22 +45,9 @@ if not GAMESTATE:IsDemonstration() then
 		};
 	};
 end;
+
+-- [ja] ゲームフレーム
 t[#t+1] = LoadActor(THEME:GetPathG("_ScreenGameplay","Frame"));
-t[#t+1] = StandardDecorationFromFileOptional("ScoreFrameP1","ScoreFrameP1");
-t[#t+1] = StandardDecorationFromFileOptional("ScoreFrameP2","ScoreFrameP2");
-t[#t+1] = Def.ActorFrame{
-	LoadActor(THEME:GetPathB("ScreenGameplay","overlay/score"),PLAYER_1)..{
-		InitCommand=cmd(player,PLAYER_1;
-			x,THEME:GetMetric("ScreenGameplay","ScoreP1X");
-			y,THEME:GetMetric("ScreenGameplay","ScoreP1Y"););
-	};
-	LoadActor(THEME:GetPathB("ScreenGameplay","overlay/score"),PLAYER_2)..{
-		InitCommand=cmd(player,PLAYER_2;
-			x,THEME:GetMetric("ScreenGameplay","ScoreP2X");
-			y,THEME:GetMetric("ScreenGameplay","ScoreP2Y"););
-	};
-};
-t[#t+1] = StandardDecorationFromFileOptional("StageDisplay","StageDisplay");
 if GetUserPref_Theme("UserWheelMode") == 'Jacket->Banner' then
 	wheelmode = "JBN"
 elseif GetUserPref_Theme("UserWheelMode") == 'Jacket->BG' then
@@ -165,90 +174,9 @@ if GAMESTATE:IsDemonstration() then
 		};
 	};
 end;
-if TC_GetwaieiMode()==2 then
-	t[#t+1]=Def.ActorFrame{
-		LoadActor("ready_waiei2");
-	};
-else
-	t[#t+1]=Def.ActorFrame{
-		LoadActor("ready_waiei1");
-	};
-end;
-
---[[
-t[#t+1] = Def.ActorFrameTexture{
-	Name = "ScreenTex";
-	InitCommand=function(self)
-		self:SetTextureName( "ScreenTex" );
-		self:SetWidth(SCREEN_WIDTH);
-		self:SetHeight(SCREEN_HEIGHT);
-		self:EnableAlphaBuffer(true);
-		self:Create();
-	end;
-	OnCommand=function(self)
-		self:visible(true);
-		self:Draw();
-	end;
-	Def.Quad{ OnCommand=cmd(Center;FullScreen;diffuse,0,0,0,1), },
-	Def.Sprite{
-		InitCommand=function(self)
-			self:LoadBackground(_SONG2():GetBackgroundPath());
-		end;
-		OnCommand=cmd(Center;FullScreen;diffuse,1,1,1,PREFSMAN:GetPreference('BGBrightness')),
-	},
-	Def.ActorProxy{ Name = "ProxyUL"; OnCommand=function(self) self:x(0); self:y(0); self:SetTarget(SCREENMAN:GetTopScreen():GetChild('Underlay')); end },
-	Def.ActorProxy{ Name = "ProxyUL"; OnCommand=function(self) self:x(0); self:y(0); self:SetTarget(SCREENMAN:GetTopScreen():GetChild('SongBackground')); end },
-	Def.ActorProxy{ Name = "ProxyP1"; OnCommand=function(self) self:x(0); self:y(0); self:SetTarget(SCREENMAN:GetTopScreen():GetChild('PlayerP1')); end },
-	Def.ActorProxy{ Name = "ProxyP2"; OnCommand=function(self) self:x(0); self:y(0); self:SetTarget(SCREENMAN:GetTopScreen():GetChild('PlayerP2')); end },
-	--Def.ActorProxy{ Name = "ProxyOL"; OnCommand=function(self) self:x(0); self:y(0) self:SetTarget(SCREENMAN:GetTopScreen():GetChild('Overlay')); end },
-};
-local px={0,r,0,-r,0,0};
-local py={0,0,0,0,-r,r};
-local pz={r,0,-r,0,0,0};
-local rx={0,0,0,0,90,-90};
-local ry={0,90,180,270,0,0};
-local b=Def.ActorFrame{
-	FOV=90;
-	InitCommand=cmd(SetDrawByZPosition,true);
-	OnCommand=cmd(Center;rotationz,0;rotationx,0;linear,90;rotationz,360;rotationx,-360);
-};
-for i=1,6 do
-	b[#b+1] = Def.Sprite{
-		Texture = "ScreenTex";
-		InitCommand=function(self)
-			self:blend('BlendMode_Add');
-			self:x(px[i]);
-			self:y(py[i]);
-			self:z(pz[i]);
-			self:rotationx(rx[i]);
-			self:rotationy(ry[i]);
-		end;
-	};
-end;
-local b=Def.ActorFrame{
-	FOV=90;
-	InitCommand=cmd(SetDrawByZPosition,true;rotationx,-30;bob);
-	--InitCommand=cmd(SetDrawByZPosition,true;);
-	--OnCommand=cmd(rotationx,0;linear,90;rotationx,-360);
-};
-local m=24;
-for i=1,m do
-b[#b+1] = Def.Sprite{
-	Texture = "ScreenTex";
-	InitCommand=function(self)
-		local base=1.0/m;
-		self:x(SCREEN_CENTER_X);
-		self:y(SCREEN_CENTER_Y);
-		self:z(-150);
-		self:cropleft(base*(i-1));
-		self:cropright(base*(m-i));
-		self:rotationy(45*i/m);
-	end;
-};
-end;
-t[#t+1] = b;
---]]
 
 t[#t+1] = LoadActor("lyric");
+
+t[#t+1]=LoadActor(THEME:GetPathB("ScreenGameplay","ready/ready"));
 
 return t;

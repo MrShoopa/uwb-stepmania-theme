@@ -127,15 +127,30 @@ t.InitCommand=cmd(SetUpdateFunction,update);
 
 end;
 
-if TC_GetwaieiMode()==2 then
-	t[#t+1] = Def.Quad{
-		InitCommand=cmd(Center;blend,'BlendMode_Add';diffuse,Color('White');zoomto,0,5);
-		OffCommand=cmd(
-			diffusealpha,0;
-			decelerate,0.3;zoomto,SCREEN_WIDTH*0.8,5;diffusealpha,0.5;
-			accelerate,0.3;zoomto,SCREEN_WIDTH,SCREEN_HEIGHT;diffusealpha,1.0;);
-	}
-end;
+-- [ja] アバターは最前面表示
+t[#t+1]= LoadActor(THEME:GetPathG('_Avatar','graphics/show'),30,false,0.375)..{
+	InitCommand=function(self)
+	--[[
+		if TC_GetwaieiMode()==2 then
+			if SCREEN_WIDTH/SCREEN_HEIGHT<1.6 then
+				self:y(160);
+			else
+				self:y(90);
+			end;
+		else
+			if SCREEN_WIDTH/SCREEN_HEIGHT<1.6 then
+				self:y(80);
+			else
+				self:y(90);
+			end;
+		end;
+	--]]
+		self:y(SCREEN_HEIGHT-35);
+	end;
+};
+
+-- [ja] 決定後のエフェクト
+t[#t+1] = LoadActor(THEME:GetPathB('_ScreenSelectMusic','overlay_offcommand/waiei'..TC_GetwaieiMode()));
 
 
 return t;

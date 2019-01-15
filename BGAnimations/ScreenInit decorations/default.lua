@@ -7,12 +7,6 @@ end;
 local t = Def.ActorFrame{};
 t[#t+1] = Def.ActorFrame{
 	InitCommand=function(self)
---[[
-local f=SaveFile("test.txt");
-f:Write("TEST")
-CloseFile(f);
-_SYS((FILEMAN:DoesFileExist("test.txt")) and "2T" or "2F");
---]]
 		--[ja] テーマカラー強制変更
 		local tcol=GetUserPref_Theme("UserColor") and GetUserPref_Theme("UserColor") or "Blue (Defalut)";
 		if FILEMAN:DoesFileExist(THEME:GetCurrentThemeDirectory()..waieiDir().."SetColor.cfg") then
@@ -39,6 +33,9 @@ _SYS((FILEMAN:DoesFileExist("test.txt")) and "2T" or "2F");
 		self:Center();
 	end;
 	OnCommand=function(self)
+        -- まずは設定を読み込む
+        waieiLoadPref();
+        self:sleep(0.1);
 		TC_LoadChk();
 	end;
 	Def.Quad {

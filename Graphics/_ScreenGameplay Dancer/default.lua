@@ -1,336 +1,188 @@
-local ANIME_Rest="Rest.bones.txt";
-local ANIME_Warm="WarmUp0001.bones.txt";
-local ANIME_Dance1="Dance0002.bones.txt";
-local ANIME_Dance2="Dance0007.bones.txt";
-local ANIME_Dance3="Dance0008.bones.txt";
---local ANIME_Dance4="Dance0016.bones.txt";
-local CH={};
-local CH_COMMAND={};
--- [ja] キャラクター一覧取得 
-local charalist={};
-local charaPath={};
-local charaName={};
-local charaCnt=0;
-local charalist=FILEMAN:GetDirListing('./Characters/',true,false);
-for c=1,#charalist do
-	local lcharalist=string.lower(charalist[c]);
-	if FILEMAN:DoesFileExist('./Characters/'..charalist[c]..'/model.txt') then
-		charaCnt=charaCnt+1;
-		charaPath[charaCnt]='../../../../Characters/'..charalist[c]..'/';
-		charaName[charaCnt]=charalist[c];
-	end;
-end;
-for i=1,3 do
-	local r=math.random(charaCnt);
-	CH[i]=charaPath[r];
-	local f=GetTextBlock('./Characters/'..charaName[r]..'/character.ini','character');
-	CH_COMMAND[i]=GetBlockPrm(f,'initcommand');
-end;
-local BASE_BPM=120.0;
-local P1_Player=GetSidePlayer(PLAYER_1);	-- [ja] 99 waiei.luaで定義 
-local P2_Player=GetSidePlayer(PLAYER_2);
-local P1_Steps=GAMESTATE:GetCurrentSteps(P1_Player);
-local P2_Steps=GAMESTATE:GetCurrentSteps(P2_Player);
-local P1_Timing;
-local P1_Stops;
-local P1_StopPos={};
-local P1_StopLen={};
-local P1_StopCnt=1;
-local P1_Delays;
-local P1_DelayPos={};
-local P1_DelayLen={};
-local P1_DelayCnt=1;
-if P1_Steps then
-	P1_Timing=P1_Steps:GetTimingData();
-	P1_Stops=P1_Timing:GetStops();
-	for s=1,#P1_Stops do
-		P1_StopPos[s]=tonumber(split("=",P1_Stops[s])[1]);
-		P1_StopLen[s]=tonumber(split("=",P1_Stops[s])[2]);
-	end;
-	P1_Delays=P1_Timing:GetDelays();
-	for s=1,#P1_Delays do
-		P1_DelayPos[s]=tonumber(split("=",P1_Delays[s])[1]);
-		P1_DelayLen[s]=tonumber(split("=",P1_Delays[s])[2]);
-	end;
-end;
-local P2_Timing;
-local P2_Stops;
-local P2_StopPos={};
-local P2_StopLen={};
-local P2_StopCnt=1;
-local P2_Delays;
-local P2_DelayPos={};
-local P2_DelayLen={};
-local P2_DelayCnt=1;
-if P2_Steps then
-	P2_Timing=P2_Steps:GetTimingData();
-	P2_Stops=P2_Timing:GetStops();
-	for s=1,#P2_Stops do
-		P2_StopPos[s]=tonumber(split("=",P2_Stops[s])[1]);
-		P2_StopLen[s]=tonumber(split("=",P2_Stops[s])[2]);
-	end;
-	P2_Delays=P2_Timing:GetDelays();
-	for s=1,#P2_Delays do
-		P2_DelayPos[s]=tonumber(split("=",P2_Delays[s])[1]);
-		P2_DelayLen[s]=tonumber(split("=",P2_Delays[s])[2]);
-	end;
-end;
-local sg_nowBPM={0.0,0.0,0.0};
-local flag_ready=false;
-local flag_go=false;
-local flag_start=false;
-local cm_cnt=-1;			--[ja] カメラ切り替えフラグ
-local sg_cnt={-1,-1,-1};	--[ja] アニメーション切り替え用フラグ 
-local sg_anime={0,0,0};	--[ja] アニメーション番号 
-local pos_x={0,12,-12};
-local pos_z={-4,9,9};
-local song=_SONG2();
-local start = song:GetFirstBeat();
+--[[
+    Comment Language : Ja
+    ゲーム画面 ダンサー
+--]]
 
-local dt_=0;
-local dt=0;
-local wait=1.0/60;
-local function update(self,delta)
-	dt=dt+delta;
-	if dt-dt_>wait then
-		dt_=dt;
-		local mus_sec=GAMESTATE:GetSongPosition():GetMusicSeconds();
-		local sg_pos=GAMESTATE:GetSongPosition();
-		local sg_bpm={0.0,0.0,0.0};
-		sg_bpm[1]=(sg_pos:GetCurBPS())*60;
-		if sg_pos:GetDelay() or sg_pos:GetFreeze() then
-			sg_bpm[1]=0.0;
+-- ダンサー表示
+local t = Def.ActorFrame{};
+
+local ch={};
+local ch_pn = {};
+local ch_add = 2;			-- ランダムで追加するキャラ数
+local ch_master = 0;	    -- プレイヤーキャラ以外の基準となる譜面（0＝グローバルBPM）
+if (GAMESTATE:IsPlayerEnabled(PLAYER_1) and not GAMESTATE:IsPlayerEnabled(PLAYER_2)) then
+	ch_master = PLAYER_1;
+elseif not (GAMESTATE:IsPlayerEnabled(PLAYER_1) and GAMESTATE:IsPlayerEnabled(PLAYER_2)) then
+	ch_master = PLAYER_2;
+end;
+for i=1,2 do
+	if GAMESTATE:IsPlayerEnabled('PlayerNumber_P'..i) then
+		local tmp_ch = GAMESTATE:GetCharacter('PlayerNumber_P'..i);
+		if tmp_ch and tmp_ch:GetModelPath()~='' then
+			ch[#ch+1]       = tmp_ch;
+			ch_pn[#ch_pn+1] = 'PlayerNumber_P'..i;
 		end;
-		if P1_Timing then
-			local beat=P1_Timing:GetBeatFromElapsedTime(mus_sec);
-			sg_bpm[2]=P1_Timing:GetBPMAtBeat(beat);
-			if P1_StopCnt<=#P1_Stops
-				and beat>=P1_StopPos[P1_StopCnt] then
-				if mus_sec<=P1_Timing:GetElapsedTimeFromBeat(P1_StopPos[P1_StopCnt])+P1_StopLen[P1_StopCnt] then
-					sg_bpm[2]=0.0;
-				else
-					P1_StopCnt=P1_StopCnt+1;
-				end;
-			end;
-			if P1_DelayCnt<=#P1_Delays
-				and beat>=P1_DelayPos[P1_DelayCnt] then
-				if mus_sec<=P1_Timing:GetElapsedTimeFromBeat(P1_DelayPos[P1_DelayCnt])+P1_DelayLen[P1_DelayCnt] then
-					sg_bpm[2]=0.0;
-				else
-					P1_DelayCnt=P1_DelayCnt+1;
-				end;
-			end;
-		else
-			sg_bpm[2]=(sg_pos:GetCurBPS())*60;
-		end;
-		if P2_Timing then
-			local beat=P2_Timing:GetBeatFromElapsedTime(mus_sec);
-			sg_bpm[3]=P2_Timing:GetBPMAtBeat(beat);
-			if P2_StopCnt<=#P2_Stops
-				and beat>=P2_StopPos[P2_StopCnt] then
-				if mus_sec<=P2_Timing:GetElapsedTimeFromBeat(P2_StopPos[P2_StopCnt])+P2_StopLen[P2_StopCnt] then
-					sg_bpm[3]=0.0;
-				else
-					P2_StopCnt=P2_StopCnt+1;
-				end;
-			end;
-			if P2_DelayCnt<=#P2_Delays
-				and beat>=P2_DelayPos[P2_DelayCnt] then
-				if mus_sec<=P2_Timing:GetElapsedTimeFromBeat(P2_DelayPos[P2_DelayCnt])+P2_DelayLen[P2_DelayCnt] then
-					sg_bpm[3]=0.0;
-				else
-					P2_DelayCnt=P2_DelayCnt+1;
-				end;
-			end;
-		else
-			sg_bpm[3]=(sg_pos:GetCurBPS())*60;
-		end;
-		if not flag_ready and sg_pos:GetSongBeat()+12>start then
-			self:queuecommand("Ready");
-			flag_ready=true;
-		end;
-		if not flag_go and sg_pos:GetSongBeat()+8>start then
-			self:queuecommand("Go");
-			flag_go=true;
-		end;
-		if not flag_start and sg_pos:GetSongBeat()>start then
-			self:queuecommand("Go");
-			flag_start=true;
-		end;
-		for i=1,3 do
-			if sg_nowBPM[i]~=sg_bpm[i] then
-				self:queuecommand("ChangeBPM");
-				sg_nowBPM[i]=sg_bpm[i];
-			end;
-			local anime_cnt=math.floor((sg_pos:GetSongBeat())/32);
-			local camera_cnt=math.floor((sg_pos:GetSongBeat())/16);
-			if flag_start then
-				if camera_cnt>cm_cnt then
-					self:queuecommand("ChangeCamera");
-					cm_cnt=camera_cnt;
-				end;
-				if anime_cnt>sg_cnt[i] then
-					sg_anime[i]=math.floor(math.random(3)+0.99);
-					self:queuecommand("ChangeAnime");
-					sg_cnt[i]=anime_cnt;
-				end;
+	end;
+end;
+-- [ja] 追加ダンサー（ランダム）
+if ch_add>0 then
+	for i=1,ch_add do
+		for r=1,3 do	-- [ja] 動作しないキャラが選択された時のため一応3回チェック
+			local tmp_ch = CHARMAN:GetRandomCharacter();
+			if tmp_ch and tmp_ch:GetModelPath()~='' then
+				ch[#ch+1]       = tmp_ch;
+				ch_pn[#ch_pn+1] = ch_master;
+				break;
 			end;
 		end;
 	end;
 end;
-local def_y=0;
-local t=Def.ActorFrame{
-	ChangeCameraMessageCommand=function(self)
-		def_y=(def_y+90+math.random(180))%360;
-		self:rotationy(def_y);
+-- [ja] 3Dダンサーが0人の場合はreturn
+if #ch<=0 then
+	return t;
+end;
+-- [ja] プレイヤーダンサーが中央に行くように調整する
+if #ch>2 then
+	if (#ch%2)==1 then
+		-- [ja] ダンサー数が奇数
+		if ch_pn[2] == ch_master then	-- [ja] SINGLE
+			local tmp_cnt = math.floor(#ch/2)+1;
+			local tmp_ch = ch[tmp_cnt];
+			local tmp_pn = ch_pn[tmp_cnt];
+			ch[tmp_cnt]    = ch[1];
+			ch_pn[tmp_cnt] = ch_pn[1];
+			ch[1]    = tmp_ch;
+			ch_pn[1] = tmp_pn;
+		else							-- [ja] VERSUS
+			local tmp_cnt = math.floor(#ch/2);
+			local tmp_ch = ch[tmp_cnt];
+			local tmp_pn = ch_pn[tmp_cnt];
+			ch[tmp_cnt]    = ch[1];
+			ch_pn[tmp_cnt] = ch_pn[1];
+			ch[1]    = tmp_ch;
+			ch_pn[1] = tmp_pn;
+			tmp_ch = ch[tmp_cnt+2];
+			tmp_pn = ch_pn[tmp_cnt+2];
+			ch[tmp_cnt]    = ch[2];
+			ch_pn[tmp_cnt] = ch_pn[2];
+			ch[2]    = tmp_ch;
+			ch_pn[2] = tmp_pn;
+		end;
+	else
+		-- [ja] ダンサー数が偶数
+		local tmp_cnt = math.floor(#ch/2);
+		local tmp_ch = ch[tmp_cnt];
+		local tmp_pn = ch_pn[tmp_cnt];
+		ch[tmp_cnt]    = ch[1];
+		ch_pn[tmp_cnt] = ch_pn[1];
+		ch[1]    = tmp_ch;
+		ch_pn[1] = tmp_pn;
+		if ch_pn[2] ~= ch_master then	-- [ja] VERSUS
+			tmp_ch = ch[tmp_cnt+1];
+			tmp_pn = ch_pn[tmp_cnt+1];
+			ch[tmp_cnt]    = ch[2];
+			ch_pn[tmp_cnt] = ch_pn[2];
+			ch[2]    = tmp_ch;
+			ch_pn[2] = tmp_pn;
+		end;
 	end;
-	ChangeAnimeCommand=function(self)
+end;
+
+
+local c = Def.ActorFrame{
+	FOV=60;
+	OnCommand=function(self)
+		self:Center();
+		self:horizalign(center);
+		self:rotationx(15);
 	end;
 };
-for mr=1,2 do
-		if mr==2 then
-			t[#t+1]=LoadActor('yuka')..{
-				InitCommand=cmd(zoomto,40,40;y,-5;diffusealpha,0.7;rotationx,90;);
-			};
-		end;
-	for i=1,#CH do
-	if CH[i]~="<OFF>" then
-		
-		t[#t+1]=Def.ActorFrame{
-			InitCommand=function(self)
-				if CH_COMMAND[i]~='' then
-					self:playcommand('Init2');
-				end;
-			end;
-			Init2Command=loadstring("return cmd("..CH_COMMAND[i]..");")();
-			OnCommand=function(self)
-				self:basezoomy((mr-1)*2-1);
-			end;
-			Def.Model{
-				Meshes=CH[i].."model.txt",
-				Materials=CH[i].."model.txt",
-				Bones=ANIME_Rest,
-				InitCommand=function(self)
-					self:backfacecull(false);
-					self:diffusecolor(color("#1a1a1a"));
-					self:x(pos_x[i]);
-					self:z(pos_z[i]);
-				end;
-				ChangeBPMCommand=function(self)
-					self:rate(sg_nowBPM[i]/BASE_BPM);
-				end;
-				ReadyCommand=function(self)
-					self:visible(false);
-				end;
-			};
-			Def.Model{
-				Meshes=CH[i].."model.txt",
-				Materials=CH[i].."model.txt",
-				Bones=ANIME_Warm,
-				InitCommand=function(self)
-					self:visible(false);
-					self:backfacecull(false);
-					self:diffusecolor(color("#1a1a1a"));
-					self:x(pos_x[i]);
-					self:z(pos_z[i]);
-				end;
-				ChangeBPMCommand=function(self)
-					self:rate(sg_nowBPM[i]/BASE_BPM);
-				end;
-				ReadyCommand=function(self)
-					self:visible(true);
-				end;
-				GoCommand=function(self)
-					self:linear(1.0);
-					self:diffusecolor(1.0,1.0,1.0,1.0);
-				end;
-				ChangeAnimeCommand=function(self)
-					self:visible(false);
-				end;
-			};
-			Def.Model{
-				Meshes=CH[i].."model.txt",
-				Materials=CH[i].."model.txt",
-				Bones=ANIME_Dance1,
-				InitCommand=function(self)
-					self:visible(false);
-					self:backfacecull(false);
-					self:x(pos_x[i]);
-					self:z(pos_z[i]);
-				end;
-				ChangeBPMCommand=function(self)
-					self:rate(sg_nowBPM[i]/BASE_BPM);
-				end;
-				ChangeAnimeCommand=function(self)
-					self:visible(sg_anime[i]==1);
-				end;
-			};
-			Def.Model{
-				Meshes=CH[i].."model.txt",
-				Materials=CH[i].."model.txt",
-				Bones=ANIME_Dance2,
-				InitCommand=function(self)
-					self:visible(false);
-					self:backfacecull(false);
-					self:x(pos_x[i]);
-					self:z(pos_z[i]);
-				end;
-				ChangeBPMCommand=function(self)
-					self:rate(sg_nowBPM[i]/BASE_BPM);
-				end;
-				ChangeAnimeCommand=function(self)
-					self:visible(sg_anime[i]==2);
-				end;
-			};
-			Def.Model{
-				Meshes=CH[i].."model.txt",
-				Materials=CH[i].."model.txt",
-				Bones=ANIME_Dance3,
-				InitCommand=function(self)
-					self:visible(false);
-					self:backfacecull(false);
-					self:x(pos_x[i]);
-					self:z(pos_z[i]);
-				end;
-				ChangeBPMCommand=function(self)
-					self:rate(sg_nowBPM[i]/BASE_BPM);
-				end;
-				ChangeAnimeCommand=function(self)
-					self:visible(sg_anime[i]==3);
-				end;
-			};
-			--[[
-			Def.Model{
-				Meshes=CH[i].."model.txt",
-				Materials=CH[i].."model.txt",
-				Bones=ANIME_Dance4,
-				InitCommand=function(self)
-					self:visible(false);
-					self:backfacecull(false);
-					self:x(pos_x[i]);
-					self:z(pos_z[i]);
-				end;
-				ChangeBPMCommand=function(self)
-					self:rate(sg_nowBPM[i]/BASE_BPM);
-				end;
-				ChangeAnimeCommand=function(self)
-					self:visible(sg_anime[i]==4);
-				end;
-			};
-			--]]
-		};
+
+-- [ja] キャラクターの隙間
+local ch_space = math.min(700, #ch*200) / #ch;
+
+-- [ja] 鏡面反射を先に描画する
+for i=0,#ch-1 do
+    -- [ja] 鏡面反射
+    c[#c+1] = LoadActor(
+            THEME:GetPathG("_ScreenGameplay","Dancer/Character"),
+            i, ch_pn[i+1], ch[i+1], true, nil)..{
+        OnCommand = cmd(
+            x, -ch_space * (#ch/2) + ch_space * i + ch_space / 2;
+            y, 100;
+        );
+    };
+end;
+
+-- [ja] 床
+c[#c+1] = Def.ActorFrame{
+    
+	OnCommand = cmd(
+        rotationx, -90;
+        y, 100;
+        diffusealpha, 0.5
+    );
+    
+	LoadActor( THEME:GetPathG('_Gameplay','BGA'), _SONG() )..{
+		OnCommand=cmd( zoom, 800 / SCREEN_WIDTH );
+	};
+	Def.Quad{
+		OnCommand = cmd(
+            zoomto, 800, 800;
+            diffuse, 0, 0, 0, 0.5;
+        );
+	};
+};
+
+-- [ja] キャラクター本体
+for i = 0, #ch-1 do
+    c[#c+1] = 
+        LoadActor(
+            THEME:GetPathG("_ScreenGameplay","Dancer/Character"),
+            i + #ch, ch_pn[i+1], ch[i+1], false, i )..{
+        OnCommand=cmd(
+            x, -ch_space * (#ch/2) + ch_space * i + ch_space / 2;
+            y, 100;
+        );
+    };
+end;
+t[#t+1] = Def.Quad{
+    OnCommand=cmd(
+        zoomto, SCREEN_WIDTH+1, SCREEN_HEIGHT+1;
+        Center;
+        diffuse, 0, 0, 0, 0;
+        linear, 0.3;
+        diffusealpha, 0.5
+    );
+};
+t[#t+1]=c..{
+	ChChangeAnimeMessageCommand=function(self)
+		local rnd_z = math.random(512) - 256;
+		self:finishtweening();
+		self:z(rnd_z);
+		self:rotationy((math.random(720) - 360) * 2);
+		self:linear(15);
+		self:rotationy(0);
+		self:z(2 * rnd_z);
 	end;
+};
+
+-- [ja] カメラアップデート
+--[[
+local dtOld = 0;    -- DeltaTime
+local dt = 0;
+local wait = 1.0/60;
+local sgStart = _SONG2():GetFirstBeat();
+local function update(self,delta)
+	dt = dt + delta;
+	if dt - dtOld > wait then
+		dtOld = dt;
 	end;
 end;
+
 t.InitCommand=function(self)
-	self:fov(90);
-	self:Center();
-	self:y(SCREEN_HEIGHT*6/7-100);
-	self:rotationy(180);
-	self:zoomz(1);
-	self:zoom(14);
-	self:rotationx(30);
 	self:SetUpdateFunction(update);
 end;
-	
+--]]
+
 return t;

@@ -32,4 +32,16 @@ t[#t+1]=Def.ActorFrame{
 	};
 };
 
+local nTime=0;
+local anno_title=1;
+local function update(self,dt)
+	nTime=nTime+dt;
+	if nTime/8>anno_title then
+		SOUND:PlayAnnouncer("title menu attract");
+		anno_title=anno_title+1;
+	end;
+end;
+
+t.InitCommand=cmd(SetUpdateFunction,update);
+
 return t;

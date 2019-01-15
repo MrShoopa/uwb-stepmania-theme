@@ -1,19 +1,20 @@
-function InputCurrentAnnouncer()
-	local an=ANNOUNCER:GetCurrentAnnouncer();
-	setenv("Announcers",an);
-	return an;
+local announcer="";
+
+function GetCurrentAnnouncer()
+	announcer=ANNOUNCER:GetCurrentAnnouncer();
+	return announcer;
 end;
 
 function MuteAnnouncer()
-	if not getenv("Announcers") or getenv("Announcers")=="" then
-		InputCurrentAnnouncer();
+	if not announcer or announcer=="" then
+		announcer = GetCurrentAnnouncer();
 	end;
 	ANNOUNCER:SetCurrentAnnouncer("");
 end;
 
 function ResetAnnouncer()
-	if getenv("Announcers") then
-		ANNOUNCER:SetCurrentAnnouncer(getenv("Announcers"));
-		setenv("Announcers",nil)
+	if announcer and announcer~="" then
+		ANNOUNCER:SetCurrentAnnouncer(announcer);
+		announcer="";
 	end;
 end;

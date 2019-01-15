@@ -55,7 +55,7 @@ t[#t+1]=Def.ActorFrame{
 				self:Load( THEME:GetPathG("Common fallback","jacket") );
 			end;
 			self:scaletocover(0,0,180,180);
-			self:x(-1);	-- [ja] 画像を直すべきなんだよね 
+			self:x(0);
 			self:y(0);
 			local w=self:GetWidth();
 			local h=self:GetHeight();
@@ -80,7 +80,7 @@ t[#t+1]=Def.ActorFrame{
 		SetMessageCommand=function(self,params)
 			self:settextf("%s",GetSongWheel_Title(i));
 			self:diffuse(Color("White"));
-			self:strokecolor(0,0,0,0.5);
+			self:strokecolor(0,0,0,0.2);
 		end;
 	};
 };

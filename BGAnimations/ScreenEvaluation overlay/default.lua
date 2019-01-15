@@ -1,3 +1,223 @@
+local function TweetResult(pn)
+    local pname = PROFILEMAN:GetPlayerName(pn);
+    if not pname or pname=='' then
+        _SYS('You must set player name.');
+        return;
+    end;
+	local function CreateUrl(str)
+		local str_url = '';
+		for i=1,string.len(str) do
+			local str_byte=string.byte(str,i);
+			str_url = str_url..'%'..string.format("%02x",str_byte);
+		end;
+		return str_url;
+	end;
+	local song=_SONG();
+	local overlimit=GetUserPref_Theme("UserRadarOverLimit") or 'On';
+	local MinCombo_=GetUserPref_Theme("UserMinCombo");
+	local JudgeLabel=GetUserPref_Theme("UserJudgementLabel") or 'DDR';
+	local MinCombo=(MinCombo_=='TapNoteScore_W3') and 3 or ((MinCombo_=='TapNoteScore_W1') and 1 or ((MinCombo_=='TapNoteScore_W2') and 2 or 4));
+	local ss = STATSMAN:GetCurStageStats();
+	local pss = ss:GetPlayerStageStats( pn );
+	local ps = GAMESTATE:GetPlayerState( pn );
+	local pct = pss:GetPercentDancePoints()*100;
+	local st = _STEPS2(pn);
+	local stt = st:GetStepsType();
+	local diff = st:GetDifficulty();
+	local cd = string.upper(_DifficultyNAME2("DDR SuperNOVA", diff));
+	local meter='0';
+	local pr = PROFILEMAN:GetProfile(pn);
+	
+	local highscore=0;
+	local scorelist = pr:GetHighScoreList(song,GAMESTATE:GetCurrentSteps(pn));
+	local scores = scorelist:GetHighScores();
+	if pct>=GetScoreData(scores,"dp")*100 and pct>0 then
+		highscore=1;
+	end;
+	
+	-- [ja] 難易度
+	local mt = GetUserPref_Theme("UserMeterType") or 'Default';
+	if song:HasStepsTypeAndDifficulty(stt,diff) then
+		if mt=='DDR X' then
+			meter = GetConvertDifficulty_DDRX(song,st,GetNoLoadSongPrm(song,'metertype'));
+		elseif mt=='LV100' then
+			meter = GetConvertDifficulty_LV100(song,st);
+		else
+			meter = st:GetMeter();
+		end;
+	end;
+	local metermode=string.upper(mt);
+	
+	-- [ja] フルコン
+	local fc = 0;
+	if pss:FullComboOfScore('TapNoteScore_W4') then
+		if pss:FullComboOfScore('TapNoteScore_W1') then
+			fc=1;
+		elseif pss:FullComboOfScore('TapNoteScore_W2') and MinCombo>=2 then
+			fc=2;
+		elseif pss:FullComboOfScore('TapNoteScore_W3') and MinCombo>=3 then
+			fc=3;
+		elseif pss:FullComboOfScore('TapNoteScore_W4') and MinCombo>=4 then
+			fc=4;
+		else
+			fc=0;
+		end;
+	else
+		fc=0;
+	end;
+	
+	-- [ja] 曲の色
+	local n_song="";
+	local col = '';
+	if song then
+		local n_group=""..song:GetGroupName();
+		n_song=string.lower(GetSong2Folder(song));
+		local metertype=GetSongs_str(n_group.."/"..n_song,'metertype') or 'ddr';
+		local menucolor=GetSongs_str(n_group.."/"..n_song,'color');
+		if not menucolor then
+			if IsBossColor(song,metertype) then
+				c=Color("Red");
+			else
+				c=waieiColor("WheelDefault");
+			end;
+		else
+			c=menucolor;
+		end;
+		col = ''..c[1]..','..c[2]..','..c[3]..','..c[4];
+		metertype = string.upper(metertype);
+		if metermode ~= 'DEFAULT' then
+			if metermode=='DDR X' and metertype == 'DDR' then
+				metermode = 'DDR';
+			end;
+		else
+			metermode = metertype;
+		end;
+	end;
+	
+	-- [ja] グレード
+	local grade = '8';
+	local gr = pss:GetGrade();
+	if gr == 'Grade_Tier01' then
+		grade = '0';
+	elseif gr == 'Grade_Tier02' then
+		grade = '1';
+	elseif gr == 'Grade_Tier03' then
+		grade = '2';
+	elseif gr == 'Grade_Tier04' then
+		grade = '3';
+	elseif gr == 'Grade_Tier05' then
+		grade = '4';
+	elseif gr == 'Grade_Tier06' then
+		grade = '5';
+	elseif gr == 'Grade_Tier07' then
+		grade = '6';
+	else
+		grade = '7';
+	end;
+	
+	-- [ja] オプション
+	local option = ps:GetPlayerOptionsString("ModsLevel_Preferred");
+	
+	-- [ja] グループ名
+	local gn = song:GetGroupName();
+
+	-- [ja] ダンスポイント
+	local dp;
+	if pct==100 then
+		dp = '100';
+	else
+		dp = string.format("%2.2f",pct);
+	end;
+	
+	-- [ja] ラベル
+	local label='0';
+	if JudgeLabel=='DDR' then
+		label='1';
+	elseif JudgeLabel=='DDR SuperNOVA' then
+		label='2';
+	else
+		label='0';
+	end;
+	
+	local param='?';
+	param=param..'scoremode='..string.upper((GetUserPref_Theme("UserCustomScore") or 'SM5'))..'&';
+	param=param..'score='..pss:GetScore()..'&';
+	param=param..'dp='..dp..'&';
+	param=param..'fc='..fc..'&';
+	param=param..'j_w1='..pss:GetTapNoteScores('TapNoteScore_W1')..'&';
+	param=param..'j_w2='..pss:GetTapNoteScores('TapNoteScore_W2')..'&';
+	param=param..'j_w3='..pss:GetTapNoteScores('TapNoteScore_W3')..'&';
+	param=param..'j_w4='..pss:GetTapNoteScores('TapNoteScore_W4')..'&';
+	param=param..'j_w5='..pss:GetTapNoteScores('TapNoteScore_W5')..'&';
+	param=param..'j_ms='..pss:GetTapNoteScores('TapNoteScore_Miss')..'&';
+	param=param..'j_ok='..pss:GetHoldNoteScores('HoldNoteScore_Held')..'&';
+	param=param..'j_mc='..pss:MaxCombo()..'&';
+	param=param..'judge='..label..'&';
+	param=param..'color='..col..'&';
+	-- date time
+	param=param..'tm_y='..Year()..'&';
+	param=param..'tm_m='..(MonthOfYear()+1)..'&';
+	param=param..'tm_d='..DayOfMonth()..'&';
+	param=param..'tm_h='..Hour()..'&';
+	param=param..'tm_mi='..Minute()..'&';
+	param=param..'ultimate='..(IsUltimateLife() and 1 or 0)..'&';
+	param=param..'style='..string.upper(GAMESTATE:GetCurrentGame():GetName())..'&';
+	param=param..'mode='..string.upper(GAMESTATE:GetCurrentStyle():GetName())..'&';
+	param=param..'timing='..GetTimingDifficulty()..'&';
+	param=param..'life='..GetLifeDifficulty()..'&';
+	param=param..'difficulty='..cd..'&';
+	-- metertype mode
+	param=param..'mtm='..metermode..'&';
+	param=param..'level='..meter..'&';
+	param=param..'grade='..grade..'&';
+	param=param..'option='..option..'&';
+	param=param..'r_str='..yaGetRadarVal(song,pn,'Stream',false,overlimit)..'&';
+	param=param..'r_vol='..yaGetRadarVal(song,pn,'Voltage',false,overlimit)..'&';
+	param=param..'r_air='..yaGetRadarVal(song,pn,'Air',false,overlimit)..'&';
+	param=param..'r_frz='..yaGetRadarVal(song,pn,'Freeze',false,overlimit)..'&';
+	param=param..'r_cha='..yaGetRadarVal(song,pn,'Chaos',false,overlimit)..'&';
+	param=param..'theme='..(TC_GetwaieiMode()==1 and 'waiei' or '')..'&';
+	param=param..'sub='..string.lower(TC_GetColorName())..'&';
+	param=param..'hscore='..highscore..'&';
+	-- GUID
+	local guid = (pr and pr:GetGUID() or '0');
+	param=param..'guid='..guid..'&';
+	local url = URLEncode('http://sm.waiei.net/web/tweet.php'..param);
+	--local url = URLEncode('http://localhost/web/tweet.php'..param);
+	-- [ja] バイト単位で取り出さないと文字化けするので
+	local md5=''
+	md5 = md5..pss:GetScore()..dp..meter..grade..guid;
+	md5 = md5..pss:GetTapNoteScores('TapNoteScore_W1')..pss:GetTapNoteScores('TapNoteScore_W3');
+	md5 = md5..pss:GetTapNoteScores('TapNoteScore_W2')..pss:GetTapNoteScores('TapNoteScore_W4');
+	md5 = md5..pss:GetTapNoteScores('TapNoteScore_Miss')..pss:GetHoldNoteScores('HoldNoteScore_Held');
+	md5 = md5..pss:GetTapNoteScores('TapNoteScore_W5')..pss:MaxCombo();
+	md5 = CRYPTMAN:MD5String(md5);
+	url=url..'md5='..CreateUrl(md5)..'&';
+	-- group name
+	--url=url..'gn='..CreateUrl(string.lower(gn))..'&';
+	local ogn = GetGroupParameterEx(song,'originalname');
+	url=url..'gn='..((ogn=='') and string.lower(gn) or string.lower(ogn))..'&';
+	-- song folder name
+	--url=url..'fn='..CreateUrl(string.lower(n_song))..'&';
+	url=url..'fn='..string.lower(n_song)..'&';
+	-- [ja] プレイヤー名
+	local player = (PROFILEMAN:GetPlayerName(pn) or '---');
+	url=url..'player='..CreateUrl(player)..'&';
+	-- [ja] グループ名（Group.ini）
+	local pk = (GetGroups(gn, "name") or ((ogn~="") and ogn or gn));
+	url=url..'package='..CreateUrl(pk)..'&';
+	-- [ja] 曲名
+	local title = song:GetDisplayFullTitle();
+	url=url..'title='..CreateUrl(title)..'&';
+	-- [ja] アーティスト名
+	local artist = song:GetDisplayArtist();
+	url=url..'artist='..CreateUrl(artist)..'&';
+	GAMESTATE:ApplyGameCommand("urlnoexit,"..url);
+end;
+
+----------------------------------------------------------------------------------------------
+
+
 local vStats = STATSMAN:GetCurStageStats();
 local cscore;
 if GetUserPref_Theme("UserCustomScore") ~= nil then
@@ -188,7 +408,15 @@ local function CreateStats( pnPlayer )
 	return t
 end;
 
-local t = Def.ActorFrame {};
+local t = Def.ActorFrame {
+	CodeMessageCommand=function(self, params)
+		if not GAMESTATE:IsCourseMode() then
+			if params.Name=="Tweet" or params.Name=="Tweet2" then
+				TweetResult(GetSidePlayer(params.PlayerNumber));
+			end;
+		end;
+	end;
+};
 if not THEME:GetMetric( Var "LoadingScreen","Summary" ) then
 	GAMESTATE:IsPlayerEnabled(PLAYER_1)
 	t[#t+1] = Def.ActorFrame {

@@ -153,7 +153,7 @@ t=Def.ActorFrame{
 					local st=GAMESTATE:GetCurrentStyle():GetStepsType();
 					local f=false;
 					local song=_SONG();
-					for i=1,6 do
+					for i=1,5 do	-- [ja] EDITは考慮しない
 						if song:HasStepsTypeAndDifficulty(st,Difficulty[i]) then
 							if song:IsStepsUsingDifferentTiming(song:GetOneSteps(st,Difficulty[i])) then
 								f=true;

@@ -3,6 +3,7 @@ t[#t+1]=DrillSelectMusic_in();
 t[#t+1]=EXF_ScreenSelectMusic();
 
 if not IsDrill() and not GAMESTATE:IsCourseMode() then
+TC_ReloadTheme();
 SetGroupInfo();
 local EXFChk=false;
 local CreatedSortText=getenv("CreatedSortText",CreatedSortText) or false;

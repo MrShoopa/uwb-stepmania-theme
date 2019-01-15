@@ -1,14 +1,17 @@
 --[ja] SM5本体のバージョンを以下のグループで分ける
 --[[
-	previewX	0
-	A1,A1a	1
-	A2		2
-	A3		3
-	B1,B1a	10
-	B2,B2a	20
-	B3		30
-	B4,B4a	40
-	Other	50
+	previewX		0
+	A1,A1a		1
+	A2			2
+	A3			3
+	B1,B1a		10
+	B2,B2a		20
+	B3			30
+	B4,B4a		40
+	B5～5.0.7rc	50
+	5.0.7～5.0.9	70
+	5.0.1x～		80
+	5.1.x			90
 --]] 
 local f_ver=50;
 local __SMV__=false;
@@ -19,8 +22,12 @@ local function SetSMVersion()
 	-- 　　旧バージョン？知らない子ですね 
 	if string.find(v,"5.1",0,true) then
 		__SMV__= 90;
-	elseif string.find(v,"5.0.",0,true) then
+	elseif string.find(v,"5.0.1",0,true) then	-- 5.0.1x
+		__SMV__= 80;
+	elseif string.find(v,"5.0.7rc",0,true) or string.find(v,"5.0.6",0,true) or string.find(v,"5.0.5",0,true) then
 		__SMV__= 50;
+	elseif string.find(v,"5.0.",0,true) then
+		__SMV__= 70;
 	elseif string.find(v,"v5.0 beta 4",0,true) then
 		__SMV__= 40;
 	elseif string.find(v,"v5.0 beta 3",0,true) then

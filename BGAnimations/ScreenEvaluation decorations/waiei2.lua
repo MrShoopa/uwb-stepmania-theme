@@ -431,22 +431,18 @@ t[#t+1]=Def.ActorFrame{
 			else
 				local song=_SONG();
 				if song then
-					local grSys={};
-						grSys=getenv("grSys");
-					local sgSys={};
-						sgSys=getenv("sgSys");
-					local n_group=song:GetGroupName();
+					local n_group=""..song:GetGroupName();
 					local n_song=string.lower(GetSong2Folder(song));
-					local metertype=grSys["MeterType-"..n_group];
-					if sgSys["Color-"..n_group.."/"..n_song] then
-						c=sgSys["Color-"..n_group.."/"..n_song];
-					elseif sgSys["Color-"..n_group] then
-						c=sgSys["Color-"..n_group];
-					else
-						c=Str2Color("0.5,0.75,1.0,1.0");
+					local metertype=GetSongs_str(n_group.."/"..n_song,'metertype');
+					local menucolor=GetSongs_str(n_group.."/"..n_song,'color');
+					if not menucolor then
 						if IsBossColor(song,metertype) then
 							c=Color("Red");
+						else
+							c=waieiColor("WheelDefault");
 						end;
+					else
+						c=menucolor;
 					end;
 					self:diffuse(c);
 					--self:diffuse(Color("Red"));
