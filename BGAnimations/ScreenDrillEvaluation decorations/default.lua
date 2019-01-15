@@ -1,0 +1,42 @@
+local t=Def.ActorFrame{};
+local t2=Def.ActorFrame{};
+t2[#t2+1]=Def.ActorFrame{
+	LoadActor("drill");
+	LoadActor("songs");
+};
+t2.OnCommand=function(self)
+	self:queuecommand("Set");
+	self:addy(-SCREEN_HEIGHT);
+	self:decelerate(_TT.S_IN);
+	self:addy(SCREEN_HEIGHT);
+end;
+t2.OffMessageCommand=function(self)
+	self:accelerate(_TT.S_OUT);
+	self:x(-SCREEN_CENTER_X);
+	self:y(SCREEN_CENTER_Y);
+	self:zoomx(2);
+	self:zoomy(0);
+end;
+t[#t+1]=t2;
+t[#t+1]=Def.ActorFrame{
+	LoadActor(THEME:GetPathG("ScreenWithMenuElements","header"))..{
+		InitCommand=function(self)
+			self:x(SCREEN_CENTER_X);
+			self:y(SCREEN_TOP);
+		end;
+	};
+	LoadActor(THEME:GetPathG("ScreenWithMenuElements","footer"))..{
+		InitCommand=function(self)
+			self:x(SCREEN_CENTER_X);
+			self:y(SCREEN_BOTTOM);
+		end;
+	};
+	LoadActor(THEME:GetPathG("ScreenWithMenuElements","help"))..{
+		InitCommand=function(self)
+			self:x(SCREEN_CENTER_X);
+			self:y(SCREEN_BOTTOM-16);
+			(cmd(SetSecsBetweenSwitches,4;zoom,0.675;maxwidth,(SCREEN_WIDTH-300)/0.675;shadowlength,1;strokecolor,Color("Black");draworder,105;zoomy,0;zoom,1*0.675;linear,0.175))(self);
+		end;
+	};
+};
+return t;

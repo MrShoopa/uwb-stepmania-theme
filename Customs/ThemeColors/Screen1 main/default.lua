@@ -1,0 +1,166 @@
+local t=Def.ActorFrame{
+	LoadActor(THEME:GetPathB('ScreenWithMenuElements','background'));
+};
+
+t[#t+1]=Def.ActorFrame{
+	Def.ActorFrame{
+		InitCommand=cmd(visible,false);
+		SetMessageCommand=function(self,params)
+			if params.mode==2 then
+				self:visible(false);
+			else
+				self:visible(true);
+			end;
+		end;
+		Def.ActorFrame{
+			InitCommand=cmd(Center;addx,100;zoom,0.8);
+			Def.Sprite{
+				InitCommand=function(self)
+					self:Load(THEME:GetCurrentThemeDirectory().."ThemeColors/waiei/waiei/Fallback/background.png");
+					self:zoomto(480,270);
+				end;
+			};
+			Def.Sprite{
+				SetMessageCommand=function(self,params)
+					if FileExist(THEME:GetCurrentThemeDirectory().."ThemeColors/waiei/BGAnimations/ScreenWithMenuElements background/"..params.dir.."/_bg top") then
+						self:Load(GetFileExist(THEME:GetCurrentThemeDirectory().."ThemeColors/waiei/BGAnimations/ScreenWithMenuElements background/"..params.dir.."/_bg top"));
+					else
+						self:Load(GetFileExist(THEME:GetCurrentThemeDirectory().."ThemeColors/waiei/BGAnimations/ScreenWithMenuElements background/_bg top"));
+					end;
+					self:zoomto(480,270);
+				end;
+			};
+			Def.Quad{
+				InitCommand=cmd(vertalign,top;zoomto,480,5;y,-135;diffuse,0,0,0,1);
+			};
+			Def.Sprite{
+				InitCommand=function(self)
+					self:x(-240);
+					self:y(-130);
+					self:vertalign(top);
+				end;
+				SetMessageCommand=function(self,params)
+					self:Load(GetFileExist(THEME:GetCurrentThemeDirectory().."ThemeColors/waiei/Graphics/_LifeMeterBar/"..params.dir.."/LifeMeterBar under1"));
+					self:zoomto(480,self:GetHeight()*0.73);
+					self:cropleft(0.5);
+				end;
+			};
+			Def.Sprite{
+				InitCommand=function(self)
+					self:x(240);
+					self:y(-130);
+					self:vertalign(top);
+					self:rotationy(180);
+				end;
+				SetMessageCommand=function(self,params)
+					self:Load(GetFileExist(THEME:GetCurrentThemeDirectory().."ThemeColors/waiei/Graphics/_LifeMeterBar/"..params.dir.."/LifeMeterBar under1"));
+					self:zoomto(480,self:GetHeight()*0.73);
+					self:cropleft(0.5);
+				end;
+			};
+			Def.Sprite{
+				InitCommand=function(self)
+					self:y(135);
+					self:vertalign(bottom);
+				end;
+				SetMessageCommand=function(self,params)
+					self:Load(GetFileExist(THEME:GetCurrentThemeDirectory().."ThemeColors/waiei/Graphics/_LifeMeterBar/"..params.dir.."/LifeMeterBar bottom"));
+					self:zoomto(960,self:GetHeight()*0.73);
+					self:cropleft(0.25);
+					self:cropright(0.25);
+				end;
+			};
+		};
+		LoadActor("icon_waiei1")..{
+			InitCommand=cmd(Center;addx,-200;);
+		};
+	};
+	Def.ActorFrame{
+		InitCommand=cmd(visible,false);
+		SetMessageCommand=function(self,params)
+			if params.mode==1 then
+				self:visible(false);
+			else
+				self:visible(true);
+			end;
+		end;
+		Def.Sprite{
+			InitCommand=cmd(Center;addx,100;);
+			SetMessageCommand=function(self,params)
+				self:Load(GetFileExist(THEME:GetCurrentThemeDirectory().."ThemeColors/"..params.dir.."/image"));
+				self:zoomto(480*0.8,270*0.8);
+			end;
+		};
+		LoadActor("icon_waiei2")..{
+			InitCommand=cmd(Center;addx,-200;);
+		};
+	};
+	LoadFont("Common Normal")..{
+		InitCommand=cmd(x,SCREEN_CENTER_X-240;y,SCREEN_CENTER_Y-160;
+			horizalign,left;zoom,0.75;
+			wrapwidthpixels,480;
+			diffuse,Color("White");strokecolor,Color("Black");
+			settext,C_GetLang('screen1','Notice'));
+	};
+	LoadFont("Common Normal")..{
+		InitCommand=cmd(x,SCREEN_CENTER_X+270;y,SCREEN_CENTER_Y-130;
+			horizalign,right;zoom,1.0;
+			diffuse,Color("White");strokecolor,Color("Black"));
+		SetMessageCommand=function(self,params)
+			self:settext(params.sel.."/"..params.max);
+		end;
+	};
+	LoadFont("Common Normal")..{
+		Text="";
+		InitCommand=cmd(Center;zoom,2.0;addy,150;
+			diffuse,Color("White");strokecolor,Color("Black"));
+		SetMessageCommand=function(self,params)
+			self:settext(params.name);
+		end;
+	};
+};
+t[#t+1]=Def.ActorFrame{
+	LoadActor(THEME:GetPathG("EditMenu","Left"))..{
+		InitCommand=function(self)
+			self:x(SCREEN_CENTER_X-270);
+			self:y(SCREEN_CENTER_Y+150);
+		end;
+	};
+	LoadActor(THEME:GetPathG("EditMenu","Right"))..{
+		InitCommand=function(self)
+			self:x(SCREEN_CENTER_X+270);
+			self:y(SCREEN_CENTER_Y+150);
+		end;
+	};
+	--[[
+	LoadActor(THEME:GetPathG("ScreenWithMenuElements","header"))..{
+		InitCommand=function(self)
+			self:x(SCREEN_CENTER_X);
+			self:y(SCREEN_TOP);
+		end;
+	};
+	LoadActor(THEME:GetPathG("ScreenWithMenuElements","footer"))..{
+		InitCommand=function(self)
+			self:x(SCREEN_CENTER_X);
+			self:y(SCREEN_BOTTOM);
+		end;
+	};
+	LoadActor(THEME:GetPathG("ScreenWithMenuElements","help"))..{
+		InitCommand=function(self)
+			self:x(SCREEN_CENTER_X);
+			self:y(SCREEN_BOTTOM-16);
+			(cmd(SetSecsBetweenSwitches,4;zoom,0.675;maxwidth,(SCREEN_WIDTH-300)/0.675;shadowlength,1;strokecolor,Color("Black");draworder,105;zoomy,0;zoom,1*0.675;linear,0.175))(self);
+		end;
+	};
+	--]]
+	Def.Quad{
+		InitCommand=cmd(Center;FullScreen;diffuse,Color("Blue");diffusealpha,0;blend,"BlendMode_Add");
+		StartMessageCommand=cmd(linear,0.2;diffusealpha,1;linear,0.2;diffusealpha,0);
+	};
+	Def.Quad{
+		InitCommand=cmd(Center;FullScreen;diffuse,0,0,0,0);
+		StartMessageCommand=cmd(sleep,0.2;linear,0.2;diffusealpha,1);
+	};
+	LoadActor(THEME:GetPathB('ScreenWithMenuElements','in'));
+};
+return t;
